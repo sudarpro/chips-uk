@@ -2,8 +2,16 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Реестр чипов УК — Учёт и перепривязка</title>
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Чипы УК" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link id="appIconLink" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E" />
+  <link id="appleIconLink" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href='data:application/manifest+json,{"name":"%D0%A0%D0%B5%D0%B5%D1%81%D1%82%D1%80%20%D1%87%D0%B8%D0%BF%D0%BE%D0%B2%20%D0%A3%D0%9A","short_name":"%D0%A7%D0%B8%D0%BF%D1%8B%20%D0%A3%D0%9A","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#2563eb","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%232563eb%27/%3E%3Ctext x=%2750%27 y=%2766%27 font-size=%2754%27 text-anchor=%27middle%27%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}' />
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -43,7 +51,7 @@
     html.dark .text-sky-700 { color: #7dd3fc !important; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body class="bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden">
   <!-- Auth Screen -->
   <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100/80">
     <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 max-w-sm w-full p-6 sm:p-7">
@@ -88,7 +96,7 @@
   </div>
 
   <!-- Main App Shell -->
-  <div id="appShell" class="hidden max-w-6xl mx-auto px-4 py-5 sm:px-6">
+  <div id="appShell" class="hidden max-w-6xl mx-auto px-3.5 py-4 pb-24 sm:px-6 sm:py-5 sm:pb-8">
     <!-- Header -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       <div>
@@ -115,7 +123,7 @@
           <button id="btnDataMenu" class="inline-flex items-center gap-1 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer">
             <span>Данные ▾</span>
           </button>
-          <div id="dataMenu" class="hidden absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-30">
+          <div id="dataMenu" class="hidden absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-30">
             <button id="btnExportCsv" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Скачать CSV (для Excel)</button>
             <button id="btnExportJson" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Скачать резервную копию (JSON)</button>
             <label class="block w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
@@ -131,7 +139,7 @@
         </div>
         <button id="btnThemeHeader" class="theme-toggle-btn inline-flex items-center gap-1 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer" title="Переключить тему">🌙</button>
         <button id="btnLogout" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-slate-700 text-sm font-medium transition cursor-pointer" title="Выйти из аккаунта">
-          <span id="currentUserBadge" class="text-xs font-semibold"></span>
+          <span id="currentUserBadge" class="text-xs font-semibold max-w-[120px] sm:max-w-[200px] truncate"></span>
           <span>Выйти</span>
         </button>
       </div>
@@ -370,9 +378,10 @@
       <div id="detailBody" class="space-y-3 text-sm"></div>
       <div class="flex justify-between items-center pt-4 mt-4 border-t border-slate-100">
         <button id="btnDeleteChip" class="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold cursor-pointer">Удалить чип</button>
-        <div class="flex gap-2">
-          <button id="btnDetailTransfer" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold cursor-pointer">⇄ Перепривязать</button>
-          <button data-close="modalChipDetail" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
+        <div class="flex flex-wrap gap-2">
+          <button id="btnDetailEdit" class="px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold cursor-pointer">✏️ Изменить</button>
+          <button id="btnDetailTransfer" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold cursor-pointer">⇄ Перенести</button>
+          <button data-close="modalChipDetail" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
         </div>
       </div>
     </div>
@@ -452,6 +461,84 @@
             <button type="button" data-close="modalSupabase" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
             <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold cursor-pointer">Сохранить и подключить</button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav (App-like) -->
+  <nav id="mobileBottomNav" class="hidden sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-1 py-1.5 grid grid-cols-5 gap-1 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+    <button data-mob-tab="addresses" class="mob-nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-semibold text-blue-600 cursor-pointer">
+      <span class="text-base leading-none mb-0.5">🏠</span>
+      <span>Адреса</span>
+    </button>
+    <button data-mob-tab="chips" class="mob-nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-medium text-slate-500 cursor-pointer">
+      <span class="text-base leading-none mb-0.5">🔑</span>
+      <span>Чипы</span>
+    </button>
+    <button id="btnMobIssue" class="flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-semibold text-white bg-blue-600 shadow-sm cursor-pointer">
+      <span class="text-base leading-none mb-0.5">＋</span>
+      <span>Выдать</span>
+    </button>
+    <button id="btnMobTransfer" class="flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-semibold text-amber-700 bg-amber-50 cursor-pointer">
+      <span class="text-base leading-none mb-0.5">⇄</span>
+      <span>Перенос</span>
+    </button>
+    <button data-mob-tab="history" class="mob-nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-medium text-slate-500 cursor-pointer">
+      <span class="text-base leading-none mb-0.5">🕒</span>
+      <span>История</span>
+    </button>
+  </nav>
+
+  <!-- Modal: Edit Chip / Address Group -->
+  <div id="modalEdit" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="editModalTitle" class="text-lg font-bold text-slate-900">Редактировать данные</h2>
+        <button data-close="modalEdit" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <form id="formEdit" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес дома *</label>
+          <input id="editAddress" list="addressList" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Тип организации *</label>
+            <select id="editOrgType" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+              <option value="УК">УК</option>
+              <option value="Лифтовая компания">Лифтовая компания</option>
+              <option value="Почта">Почта</option>
+              <option value="Аварийная / спецслужба">Аварийная / спецслужба</option>
+              <option value="Другая">Другая</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Организация (УК / служба) *</label>
+            <input id="editUk" list="ukList" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес организации (офис УК / службы)</label>
+          <input id="editOrgAddress" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Кому выдано *</label>
+            <input id="editRecipient" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Телефон *</label>
+            <input id="editPhone" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Комментарий</label>
+          <input id="editNote" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close="modalEdit" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Сохранить изменения</button>
         </div>
       </form>
     </div>
@@ -1043,6 +1130,13 @@
           : 'tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer';
       });
 
+      document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+        const isActive = btn.dataset.mobTab === activeTab;
+        btn.className = isActive
+          ? 'mob-nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-semibold text-blue-600 cursor-pointer'
+          : 'mob-nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-[11px] font-medium text-slate-500 cursor-pointer';
+      });
+
       const bulkBar = document.getElementById('bulkBar');
       if (activeTab === 'chips' && selectedChipIds.size > 0) {
         bulkBar.classList.remove('hidden');
@@ -1122,13 +1216,18 @@
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
-              <button data-addr="${escapeHtml(address)}" class="btn-addr-transfer px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition cursor-pointer">
-                ⇄ Перепривязать с этого адреса
+            <div class="flex flex-wrap items-center justify-between gap-1.5 pt-3 border-t border-slate-100">
+              <button data-addr="${escapeHtml(address)}" class="btn-addr-transfer px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition cursor-pointer">
+                ⇄ Перепривязать
               </button>
-              <button data-addr="${escapeHtml(address)}" class="btn-addr-copy px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">
-                📋 Копировать сводку
-              </button>
+              <div class="flex items-center gap-1.5">
+                <button data-addr="${escapeHtml(address)}" class="btn-addr-edit px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition cursor-pointer">
+                  ✏️ Изменить
+                </button>
+                <button data-addr="${escapeHtml(address)}" class="btn-addr-copy px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">
+                  📋 Сводка
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -1159,6 +1258,9 @@
       });
       container.querySelectorAll('.btn-addr-transfer').forEach(btn => {
         btn.addEventListener('click', () => openTransferModal(btn.dataset.addr, null));
+      });
+      container.querySelectorAll('.btn-addr-edit').forEach(btn => {
+        btn.addEventListener('click', () => openEditModalForAddress(btn.dataset.addr));
       });
       container.querySelectorAll('.btn-addr-copy').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1538,7 +1640,7 @@
                 <div class="font-semibold text-slate-800 text-xs">
                   ${escapeHtml(h.action)}: ${h.fromAddress ? `${escapeHtml(h.fromAddress)} → ${escapeHtml(h.toAddress)}` : escapeHtml(h.toAddress)}
                 </div>
-                <div class="text-xs text-slate-500">${formatDateTime(h.date)} · ${escapeHtml(h.recipient)}</div>
+                <div class="text-xs text-slate-500">${formatDateTime(h.date)} · ${escapeHtml(h.recipient)}${h.actor ? ` · Внёс: ${escapeHtml(h.actor)}` : ''}</div>
                 ${h.comment ? `<div class="text-xs text-slate-600 mt-0.5">${escapeHtml(h.comment)}</div>` : ''}
               </div>
             `).join('')}
@@ -1698,6 +1800,7 @@
             uk,
             recipient,
             phone,
+            actor: currentUser ? currentUser.username : '',
             comment: note
           }]
         };
@@ -1806,6 +1909,7 @@
           uk,
           recipient,
           phone,
+          actor: currentUser ? currentUser.username : '',
           comment: comment || `Перепривязка с ${srcAddr}`
         });
         movedNumbers.push(chip.chipNumber);
@@ -1859,6 +1963,97 @@
       selectedChipIds.clear();
       render();
     });
+
+    let editTargetIds = [];
+
+    function openEditModal(chipIds, titleText) {
+      if (!chipIds || chipIds.length === 0) return;
+      const first = chipById.get(chipIds[0]);
+      if (!first) return;
+      editTargetIds = chipIds;
+      document.getElementById('editModalTitle').textContent = titleText || 'Редактировать данные';
+      document.getElementById('editAddress').value = first.address;
+      document.getElementById('editOrgType').value = first.orgType || 'УК';
+      document.getElementById('editUk').value = first.uk;
+      document.getElementById('editOrgAddress').value = first.orgAddress || '';
+      document.getElementById('editRecipient').value = first.recipient;
+      document.getElementById('editPhone').value = first.phone;
+      document.getElementById('editNote').value = first.note || '';
+      openModal('modalEdit');
+    }
+
+    function openEditModalForAddress(addr) {
+      const ids = state.chips.filter(c => c.address === addr).map(c => c.id);
+      openEditModal(ids, `Редактировать адрес (${ids.length} чип.)`);
+    }
+
+    document.getElementById('btnDetailEdit').addEventListener('click', () => {
+      const chip = chipById.get(currentDetailChipId);
+      closeModal('modalChipDetail');
+      if (chip) openEditModal([chip.id], `Редактировать чип ${chip.chipNumber}`);
+    });
+
+    document.getElementById('formEdit').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const address = document.getElementById('editAddress').value.trim();
+      const orgType = document.getElementById('editOrgType').value;
+      const uk = document.getElementById('editUk').value.trim();
+      const orgAddress = document.getElementById('editOrgAddress').value.trim();
+      const recipient = document.getElementById('editRecipient').value.trim();
+      const phone = document.getElementById('editPhone').value.trim();
+      const note = document.getElementById('editNote').value.trim();
+
+      const nowIso = new Date().toISOString();
+      const updatedChips = [];
+      for (const id of editTargetIds) {
+        const chip = chipById.get(id);
+        if (!chip) continue;
+        chip.address = address;
+        chip.orgType = orgType;
+        chip.uk = uk;
+        chip.orgAddress = orgAddress;
+        chip.recipient = recipient;
+        chip.phone = phone;
+        chip.note = note;
+        chip.history.push({
+          date: nowIso,
+          action: 'Изменение',
+          fromAddress: null,
+          toAddress: address,
+          orgType,
+          orgAddress,
+          uk,
+          recipient,
+          phone,
+          actor: currentUser ? currentUser.username : '',
+          comment: 'Обновлены данные карточки'
+        });
+        updatedChips.push(chip);
+      }
+
+      if (isSupabaseMode() && sbTokens) {
+        try {
+          await sbUpsertChipsBatch(updatedChips);
+        } catch (err) {
+          showToast('Ошибка Supabase: ' + err.message);
+        }
+      } else {
+        saveState();
+      }
+      closeModal('modalEdit');
+      render();
+      showToast(`Обновлено записей: ${updatedChips.length.toLocaleString('ru-RU')}`);
+    });
+
+    document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTab = btn.dataset.mobTab;
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+    document.getElementById('btnMobIssue').addEventListener('click', openIssueModal);
+    document.getElementById('btnMobTransfer').addEventListener('click', () => openTransferModal(null, null));
 
     document.getElementById('btnDetailTransfer').addEventListener('click', () => {
       const chip = chipById.get(currentDetailChipId);
@@ -2075,13 +2270,16 @@
         if (manageUsersBtn) manageUsersBtn.classList.remove('hidden');
       }
 
+      const mobNav = document.getElementById('mobileBottomNav');
       if (currentUser) {
         authEl.classList.add('hidden');
         appEl.classList.remove('hidden');
+        if (mobNav) mobNav.classList.remove('hidden');
         document.getElementById('currentUserBadge').textContent = currentUser.displayName || currentUser.username;
       } else {
         authEl.classList.remove('hidden');
         appEl.classList.add('hidden');
+        if (mobNav) mobNav.classList.add('hidden');
       }
     }
 
