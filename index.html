@@ -164,6 +164,7 @@
             <div class="border-t border-slate-100 my-1"></div>
             <button id="btnOpenSupabase" class="w-full text-left px-3.5 py-2 text-sm text-emerald-700 font-medium hover:bg-emerald-50 cursor-pointer">⚡ Подключение Supabase</button>
             <button id="btnSyncSupabase" class="hidden w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">↻ Обновить из Supabase</button>
+            <button id="btnChangeMyPassword" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">🔑 Сменить мой пароль</button>
             <button id="btnManageUsers" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Доступ (логины и пароли)</button>
             <button id="btnResetDemo" class="w-full text-left px-3.5 py-2 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer">Очистить / Демо-данные</button>
           </div>
@@ -608,6 +609,31 @@
         <button type="button" data-close="modalReceipt" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
         <button id="btnPrintReceipt" type="button" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">🖨️ Печать / Сохранить PDF</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal: Change Own Password -->
+  <div id="modalChangePassword" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Смена пароля</h2>
+        <button data-close="modalChangePassword" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <form id="formChangePassword" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Новый пароль (минимум 6 символов) *</label>
+          <input id="cpNewPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="••••••" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Повторите пароль *</label>
+          <input id="cpConfirmPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="••••••" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <p id="cpError" class="hidden text-xs font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded-xl"></p>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" data-close="modalChangePassword" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Сохранить пароль</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2583,8 +2609,8 @@
         authBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
         headerBadge.textContent = '☁️ Supabase';
         headerBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
-        loginLabel.textContent = 'Email (Supabase Auth)';
-        loginInput.placeholder = 'manager@goodline.ru';
+        loginLabel.textContent = 'Логин или Email';
+        loginInput.placeholder = 'ivanov или email@mail.ru';
         if (hintEl) hintEl.classList.add('hidden');
         if (syncBtn) syncBtn.classList.remove('hidden');
         if (manageUsersBtn) manageUsersBtn.classList.add('hidden');
@@ -2646,21 +2672,23 @@
       const errEl = document.getElementById('loginError');
 
       if (isSupabaseMode()) {
+        const loginEmail = uname.includes('@') ? uname : `${uname}@goodline.local`;
+        const cleanName = loginEmail.endsWith('@goodline.local') ? loginEmail.slice(0, -15) : loginEmail;
         try {
           const res = await fetch(sbConfig.url + '/auth/v1/token?grant_type=password', {
             method: 'POST',
             headers: { 'apikey': sbConfig.key, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: uname, password: pwd })
+            body: JSON.stringify({ email: loginEmail, password: pwd })
           });
           const data = await res.json();
           if (!res.ok) {
-            errEl.textContent = data.error_description || data.msg || 'Ошибка входа в Supabase';
+            errEl.textContent = data.error_description || data.msg || 'Неверный логин или пароль';
             errEl.classList.remove('hidden');
             return;
           }
           errEl.classList.add('hidden');
           sbTokens = { access_token: data.access_token, refresh_token: data.refresh_token };
-          currentUser = { username: data.user?.email || uname, displayName: data.user?.email || uname, sbTokens };
+          currentUser = { username: cleanName, displayName: cleanName, sbTokens };
           setSavedSession(currentUser, remember);
           document.getElementById('loginPassword').value = '';
           await sbLoadAllData();
@@ -2741,6 +2769,57 @@
       applyAuthUi();
       render();
       showToast('Переключено на локальную базу');
+    });
+
+    document.getElementById('btnChangeMyPassword').addEventListener('click', () => {
+      document.getElementById('formChangePassword').reset();
+      document.getElementById('cpError').classList.add('hidden');
+      openModal('modalChangePassword');
+    });
+
+    document.getElementById('formChangePassword').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pwd1 = document.getElementById('cpNewPassword').value;
+      const pwd2 = document.getElementById('cpConfirmPassword').value;
+      const errEl = document.getElementById('cpError');
+
+      if (pwd1.length < 6) {
+        errEl.textContent = 'Пароль должен быть не короче 6 символов';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (pwd1 !== pwd2) {
+        errEl.textContent = 'Пароли не совпадают';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      if (isSupabaseMode() && sbTokens) {
+        try {
+          await sbFetch('/auth/v1/user', {
+            method: 'PUT',
+            body: JSON.stringify({ password: pwd1 })
+          });
+          closeModal('modalChangePassword');
+          showToast('Пароль успешно изменён!');
+        } catch (err) {
+          errEl.textContent = 'Ошибка Supabase: ' + err.message;
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const passHash = await hashPassword(pwd1);
+      const u = usersList.find(x => x.username === (currentUser && currentUser.username));
+      if (u) {
+        u.passHash = passHash;
+        u.isDefault = false;
+        saveUsers();
+        applyAuthUi();
+        closeModal('modalChangePassword');
+        showToast('Пароль успешно изменён!');
+      }
     });
 
     document.getElementById('btnManageUsers').addEventListener('click', () => {
