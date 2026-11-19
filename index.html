@@ -995,6 +995,18 @@
       return `<span class="text-xs font-medium px-2 py-0.5 rounded-md ${styles[t] || styles['Другая']}">${escapeHtml(t)}</span>`;
     }
 
+    function getChipAuthors(c) {
+      const hist = Array.isArray(c.history) ? c.history : [];
+      const createdBy = hist.length > 0 && hist[0].actor ? hist[0].actor : '';
+      let updatedBy = '';
+      if (hist.length > 1) {
+        for (let i = hist.length - 1; i >= 1; i--) {
+          if (hist[i].actor) { updatedBy = hist[i].actor; break; }
+        }
+      }
+      return { createdBy, updatedBy };
+    }
+
     function formatDateTime(iso) {
       if (!iso) return '';
       const d = new Date(iso);
@@ -1178,6 +1190,8 @@
         }).join('');
         const orgAddrs = [...new Set(chips.map(c => c.orgAddress).filter(Boolean))];
         const contacts = [...new Set(chips.map(c => `${c.orgType || 'УК'}: ${c.recipient} (${c.phone})`))];
+        const creators = [...new Set(chips.map(c => getChipAuthors(c).createdBy).filter(Boolean))];
+        const updaters = [...new Set(chips.map(c => getChipAuthors(c).updatedBy).filter(Boolean))];
         const limit = expandedAddresses.get(address) || ADDRESS_CHIPS_INITIAL_LIMIT;
         const visibleChips = chips.slice(0, limit);
         const remaining = chips.length - visibleChips.length;
@@ -1197,6 +1211,8 @@
                 ${orgAddrs.map(oa => `<div>🏢 Офис: ${escapeHtml(oa)}</div>`).join('')}
                 ${contacts.map(ct => `<div>👤 ${escapeHtml(ct)}</div>`).join('')}
                 ${latest.note ? `<div class="text-slate-500">💬 ${escapeHtml(latest.note)}</div>` : ''}
+                ${creators.length ? `<div class="text-slate-500">✍️ Внёс: ${escapeHtml(creators.join(', '))}</div>` : ''}
+                ${updaters.length ? `<div class="text-slate-500">✏️ Изменил: ${escapeHtml(updaters.join(', '))}</div>` : ''}
               </div>
 
               <div class="flex flex-wrap gap-1.5 items-center">
@@ -1320,6 +1336,7 @@
                   <th class="p-3">Кому выдано</th>
                   <th class="p-3">Телефон</th>
                   <th class="p-3">Дата</th>
+                  <th class="p-3">Кто внёс / изменил</th>
                   <th class="p-3 text-right">Действия</th>
                 </tr>
               </thead>
@@ -1335,6 +1352,15 @@
                     <td class="p-3 text-slate-700">${escapeHtml(c.recipient)}</td>
                     <td class="p-3 text-slate-600 whitespace-nowrap">${escapeHtml(c.phone)}</td>
                     <td class="p-3 text-slate-500 whitespace-nowrap">${escapeHtml(c.issuedAt || '')}</td>
+                    <td class="p-3 text-xs text-slate-600">
+                      ${(() => {
+                        const { createdBy, updatedBy } = getChipAuthors(c);
+                        const parts = [];
+                        if (createdBy) parts.push(`<div><span class="text-slate-400">Внёс:</span> ${escapeHtml(createdBy)}</div>`);
+                        if (updatedBy) parts.push(`<div><span class="text-slate-400">Изм.:</span> ${escapeHtml(updatedBy)}</div>`);
+                        return parts.length ? parts.join('') : '<span class="text-slate-400">—</span>';
+                      })()}
+                    </td>
                     <td class="p-3 text-right whitespace-nowrap">
                       <button data-chip-id="${c.id}" class="btn-row-transfer text-xs font-semibold text-amber-700 hover:text-amber-800 px-2 py-1 rounded-lg hover:bg-amber-50 cursor-pointer">⇄ Перенести</button>
                     </td>
@@ -2090,8 +2116,11 @@
     document.addEventListener('click', () => dataMenu.classList.add('hidden'));
 
     document.getElementById('btnExportCsv').addEventListener('click', () => {
-      const header = ['Номер чипа', 'Адрес', 'Тип организации', 'Организация', 'Адрес организации', 'Кому выдано', 'Телефон', 'Дата', 'Комментарий'];
-      const rows = state.chips.map(c => [c.chipNumber, c.address, c.orgType || 'УК', c.uk, c.orgAddress || '', c.recipient, c.phone, c.issuedAt, c.note || '']
+      const header = ['Номер чипа', 'Адрес', 'Тип организации', 'Организация', 'Адрес организации', 'Кому выдано', 'Телефон', 'Дата', 'Кто внёс', 'Кто изменил', 'Комментарий'];
+      const rows = state.chips.map(c => {
+        const { createdBy, updatedBy } = getChipAuthors(c);
+        return [c.chipNumber, c.address, c.orgType || 'УК', c.uk, c.orgAddress || '', c.recipient, c.phone, c.issuedAt, createdBy, updatedBy, c.note || ''];
+      }).map(arr => arr
         .map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
       const csv = '\uFEFF' + [header.join(';'), ...rows].join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
