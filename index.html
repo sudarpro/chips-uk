@@ -13,42 +13,73 @@
   <link id="appleIconLink" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href='data:application/manifest+json,{"name":"%D0%A0%D0%B5%D0%B5%D1%81%D1%82%D1%80%20%D1%87%D0%B8%D0%BF%D0%BE%D0%B2%20%D0%A3%D0%9A","short_name":"%D0%A7%D0%B8%D0%BF%D1%8B%20%D0%A3%D0%9A","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#2563eb","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%232563eb%27/%3E%3Ctext x=%2750%27 y=%2766%27 font-size=%2754%27 text-anchor=%27middle%27%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}' />
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; transition: background-color 0.2s, color 0.2s; }
     .chip-badge { font-variant-numeric: tabular-nums; }
-    html.dark body { background-color: #0f172a; color: #f1f5f9; }
-    html.dark #authScreen { background-color: #0f172a; }
-    html.dark .bg-white { background-color: #1e293b !important; }
-    html.dark .bg-slate-50 { background-color: #0f172a !important; }
-    html.dark .bg-slate-50\/70, html.dark .bg-slate-50\/80 { background-color: rgba(15, 23, 42, 0.7) !important; }
-    html.dark .bg-slate-100 { background-color: #334155 !important; }
-    html.dark .hover\:bg-slate-100:hover, html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-50\/80:hover { background-color: #334155 !important; }
-    html.dark .hover\:bg-slate-200:hover { background-color: #475569 !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    html.dark body {
+      background-color: #080d1a;
+      background-image: radial-gradient(ellipse 80% 45% at 50% -10%, rgba(37, 99, 235, 0.16), transparent),
+                        radial-gradient(ellipse 50% 35% at 90% 10%, rgba(99, 102, 241, 0.10), transparent);
+      background-attachment: fixed;
+      color: #f1f5f9;
+    }
+    html.dark #authScreen {
+      background-color: #080d1a;
+      background-image: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(37, 99, 235, 0.22), transparent);
+    }
+    html.dark .bg-white { background-color: rgba(17, 24, 39, 0.88) !important; backdrop-filter: blur(12px); }
+    html.dark .bg-white\/95 { background-color: rgba(15, 23, 42, 0.94) !important; backdrop-filter: blur(16px); }
+    html.dark .bg-slate-50 { background-color: rgba(15, 23, 42, 0.72) !important; }
+    html.dark .bg-slate-50\/70, html.dark .bg-slate-50\/80 { background-color: rgba(15, 23, 42, 0.65) !important; }
+    html.dark .bg-slate-100 { background-color: rgba(30, 41, 59, 0.85) !important; }
+    html.dark .hover\:bg-slate-100:hover, html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-50\/80:hover { background-color: rgba(51, 65, 85, 0.65) !important; }
+    html.dark .hover\:bg-slate-200:hover { background-color: rgba(71, 85, 105, 0.75) !important; }
     html.dark .text-slate-900 { color: #f8fafc !important; }
     html.dark .text-slate-800 { color: #e2e8f0 !important; }
     html.dark .text-slate-700 { color: #cbd5e1 !important; }
     html.dark .text-slate-600 { color: #94a3b8 !important; }
     html.dark .text-slate-500 { color: #94a3b8 !important; }
     html.dark .text-slate-400 { color: #64748b !important; }
-    html.dark .border-slate-200, html.dark .border-slate-200\/80, html.dark .border-slate-200\/70, html.dark .border-slate-100 { border-color: #334155 !important; }
-    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155 !important; }
-    html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; color: #f1f5f9 !important; border-color: #334155 !important; }
+    html.dark .border-slate-200, html.dark .border-slate-200\/80, html.dark .border-slate-200\/70, html.dark .border-slate-100 { border-color: rgba(148, 163, 184, 0.14) !important; }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(148, 163, 184, 0.12) !important; }
+    html.dark .shadow-sm { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important; }
+    html.dark input, html.dark select, html.dark textarea { background-color: rgba(10, 15, 28, 0.9) !important; color: #f1f5f9 !important; border-color: rgba(148, 163, 184, 0.2) !important; }
+    html.dark input:focus, html.dark select:focus, html.dark textarea:focus { border-color: #3b82f6 !important; }
     html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b !important; }
-    html.dark .bg-blue-50 { background-color: rgba(37, 99, 235, 0.2) !important; }
+    html.dark .bg-blue-50 { background-color: rgba(37, 99, 235, 0.18) !important; }
     html.dark .text-blue-700 { color: #93c5fd !important; }
-    html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.18) !important; }
+    html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.16) !important; }
     html.dark .text-amber-800, html.dark .text-amber-700 { color: #fcd34d !important; }
-    html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.18) !important; }
+    html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.16) !important; }
     html.dark .text-emerald-700 { color: #6ee7b7 !important; }
-    html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.18) !important; }
+    html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.16) !important; }
     html.dark .text-rose-700, html.dark .text-rose-600 { color: #fda4af !important; }
-    html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.2) !important; }
+    html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.18) !important; }
     html.dark .text-purple-700 { color: #d8b4fe !important; }
-    html.dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.2) !important; }
+    html.dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.18) !important; }
     html.dark .text-sky-700 { color: #7dd3fc !important; }
+    @media print {
+      body * { visibility: hidden !important; }
+      #receiptPrintArea, #receiptPrintArea * { visibility: visible !important; }
+      #receiptPrintArea {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 20px !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden">
@@ -101,7 +132,7 @@
     <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       <div>
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">🔑</div>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-600/25">🔑</div>
           <div>
             <div class="flex flex-wrap items-center gap-2">
               <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Реестр чипов: УК и службы</h1>
@@ -113,10 +144,10 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <button id="btnOpenIssue" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+        <button id="btnOpenIssue" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] text-white text-sm font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer">
           <span>+ Выдать чипы</span>
         </button>
-        <button id="btnOpenTransferGlobal" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+        <button id="btnOpenTransferGlobal" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-[0.99] text-white text-sm font-semibold shadow-md shadow-amber-500/20 transition cursor-pointer">
           <span>⇄ Перепривязать</span>
         </button>
         <div class="relative">
@@ -147,21 +178,33 @@
 
     <!-- Stats -->
     <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
-        <div class="text-xs font-medium text-slate-500">Всего чипов в учёте</div>
-        <div id="statTotalChips" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">Всего чипов</span>
+          <span class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center text-xs">🔑</span>
+        </div>
+        <div id="statTotalChips" class="text-2xl font-bold text-slate-900 mt-1.5">0</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
-        <div class="text-xs font-medium text-slate-500">Активных адресов</div>
-        <div id="statTotalAddresses" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">Активных адресов</span>
+          <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs">🏠</span>
+        </div>
+        <div id="statTotalAddresses" class="text-2xl font-bold text-slate-900 mt-1.5">0</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
-        <div class="text-xs font-medium text-slate-500">Организаций (УК и службы)</div>
-        <div id="statTotalUks" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">Организаций</span>
+          <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center text-xs">🏢</span>
+        </div>
+        <div id="statTotalUks" class="text-2xl font-bold text-slate-900 mt-1.5">0</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
-        <div class="text-xs font-medium text-slate-500">Перепривязок</div>
-        <div id="statTotalTransfers" class="text-2xl font-bold text-amber-600 mt-1">0</div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">Перепривязок</span>
+          <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs">⇄</span>
+        </div>
+        <div id="statTotalTransfers" class="text-2xl font-bold text-amber-500 mt-1.5">0</div>
       </div>
     </section>
 
@@ -268,10 +311,17 @@
           </div>
         </div>
         <div>
-          <div class="flex items-center justify-between mb-1">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
             <label class="block text-xs font-semibold text-slate-600">Номера чипов (без ограничений) *</label>
-            <span id="issueParsedCount" class="text-xs font-medium text-blue-600">Распознано: 0</span>
+            <div class="flex items-center gap-2">
+              <label class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer transition" title="Загрузить скриншот или фото (также работает Ctrl+V)">
+                <span>📷 Со скрина / фото</span>
+                <input id="inputOcrImage" type="file" accept="image/*" class="hidden" />
+              </label>
+              <span id="issueParsedCount" class="text-xs font-medium text-blue-600">Распознано: 0</span>
+            </div>
           </div>
+          <div id="ocrStatus" class="hidden text-xs font-medium text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg mb-1.5"></div>
           <textarea id="issueChips" rows="3" required placeholder="Через запятую, с новой строки или любым диапазоном:&#10;0014521, 0014522, 0014523&#10;или 0000001-0015000" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"></textarea>
           <p id="issueDupWarning" class="hidden text-xs text-rose-600 mt-1"></p>
         </div>
@@ -541,6 +591,23 @@
           <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Сохранить изменения</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Printable Receipt / Act -->
+  <div id="modalReceipt" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Предпросмотр акта выдачи</h2>
+        <button data-close="modalReceipt" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+
+      <div id="receiptPrintArea" style="background:#ffffff;color:#0f172a;" class="rounded-xl border border-slate-300 p-6 sm:p-8 text-sm leading-relaxed"></div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" data-close="modalReceipt" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
+        <button id="btnPrintReceipt" type="button" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">🖨️ Печать / Сохранить PDF</button>
+      </div>
     </div>
   </div>
 
@@ -1240,6 +1307,9 @@
                 <button data-addr="${escapeHtml(address)}" class="btn-addr-edit px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition cursor-pointer">
                   ✏️ Изменить
                 </button>
+                <button data-addr="${escapeHtml(address)}" class="btn-addr-receipt px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">
+                  🖨️ Акт
+                </button>
                 <button data-addr="${escapeHtml(address)}" class="btn-addr-copy px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">
                   📋 Сводка
                 </button>
@@ -1277,6 +1347,9 @@
       });
       container.querySelectorAll('.btn-addr-edit').forEach(btn => {
         btn.addEventListener('click', () => openEditModalForAddress(btn.dataset.addr));
+      });
+      container.querySelectorAll('.btn-addr-receipt').forEach(btn => {
+        btn.addEventListener('click', () => openReceiptModal(btn.dataset.addr));
       });
       container.querySelectorAll('.btn-addr-copy').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1777,15 +1850,170 @@
       try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) {}
     }
     try {
-      applyTheme(localStorage.getItem(THEME_KEY) === 'dark');
-    } catch (e) {}
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      applyTheme(savedTheme !== 'light');
+    } catch (e) { applyTheme(true); }
     document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         applyTheme(!document.documentElement.classList.contains('dark'));
       });
     });
 
+    function findLatestByUk(ukName) {
+      const q = (ukName || '').trim().toLowerCase();
+      if (!q) return null;
+      for (let i = state.chips.length - 1; i >= 0; i--) {
+        if ((state.chips[i].uk || '').trim().toLowerCase() === q) return state.chips[i];
+      }
+      return null;
+    }
+
+    function findLatestByAddress(addrName) {
+      const q = (addrName || '').trim().toLowerCase();
+      if (!q) return null;
+      for (let i = state.chips.length - 1; i >= 0; i--) {
+        if ((state.chips[i].address || '').trim().toLowerCase() === q) return state.chips[i];
+      }
+      return null;
+    }
+
+    function applyOrgAutofill(ukVal, typeElId, orgAddrElId, recElId, phoneElId) {
+      const match = findLatestByUk(ukVal);
+      if (!match) return;
+      const typeEl = document.getElementById(typeElId);
+      const orgAddrEl = document.getElementById(orgAddrElId);
+      const recEl = document.getElementById(recElId);
+      const phoneEl = document.getElementById(phoneElId);
+      if (typeEl && match.orgType) typeEl.value = match.orgType;
+      if (orgAddrEl && !orgAddrEl.value.trim() && match.orgAddress) orgAddrEl.value = match.orgAddress;
+      if (recEl && !recEl.value.trim() && match.recipient) recEl.value = match.recipient;
+      if (phoneEl && !phoneEl.value.trim() && match.phone) phoneEl.value = match.phone;
+    }
+
+    document.getElementById('issueUk').addEventListener('input', (e) => {
+      applyOrgAutofill(e.target.value, 'issueOrgType', 'issueOrgAddress', 'issueRecipient', 'issuePhone');
+    });
+
+    document.getElementById('issueAddress').addEventListener('input', (e) => {
+      const match = findLatestByAddress(e.target.value);
+      if (!match) return;
+      const ukEl = document.getElementById('issueUk');
+      if (ukEl && !ukEl.value.trim()) {
+        ukEl.value = match.uk;
+        applyOrgAutofill(match.uk, 'issueOrgType', 'issueOrgAddress', 'issueRecipient', 'issuePhone');
+      }
+    });
+
+    document.getElementById('transferUk').addEventListener('input', (e) => {
+      applyOrgAutofill(e.target.value, 'transferOrgType', 'transferOrgAddress', 'transferRecipient', 'transferPhone');
+    });
+
     document.getElementById('btnOpenIssue').addEventListener('click', openIssueModal);
+    function preprocessImageForOcr(fileOrBlob) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(fileOrBlob);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const scale = img.width < 800 ? 2.5 : (img.width < 1400 ? 2 : 1.5);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, w, h);
+
+          const imgData = ctx.getImageData(0, 0, w, h);
+          const data = imgData.data;
+          let sumLum = 0;
+          for (let i = 0; i < data.length; i += 16) {
+            sumLum += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+          }
+          const avgLum = sumLum / (data.length / 16);
+          const isDarkBg = avgLum < 128;
+
+          for (let i = 0; i < data.length; i += 4) {
+            let gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            if (isDarkBg) gray = 255 - gray;
+            // Strong contrast boost for crisp black-on-white OCR
+            gray = (gray - 128) * 2.2 + 128;
+            gray = gray < 0 ? 0 : (gray > 255 ? 255 : gray);
+            data[i] = data[i + 1] = data[i + 2] = gray;
+          }
+          ctx.putImageData(imgData, 0, 0);
+          resolve(canvas);
+        };
+        img.onerror = (e) => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Не удалось прочитать изображение'));
+        };
+        img.src = url;
+      });
+    }
+
+    async function runOcrOnImage(fileOrBlob) {
+      const statusEl = document.getElementById('ocrStatus');
+      if (!window.Tesseract) {
+        showToast('Библиотека OCR ещё загружается, попробуй через пару секунд');
+        return;
+      }
+      statusEl.textContent = 'Подготавливаю скриншот…';
+      statusEl.classList.remove('hidden');
+      try {
+        const processedCanvas = await preprocessImageForOcr(fileOrBlob);
+        const res = await Tesseract.recognize(processedCanvas, 'eng', {
+          logger: m => {
+            if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+              statusEl.textContent = `Распознаю номера со скриншота… ${Math.round(m.progress * 100)}%`;
+            }
+          }
+        });
+        const rawText = (res && res.data && res.data.text) ? res.data.text : '';
+        const found = new Set();
+        const direct = rawText.match(/\b[A-Za-z0-9]{8}\b/g) || [];
+        for (const m of direct) found.add(m.toUpperCase());
+        for (const line of rawText.split(/\r?\n/)) {
+          const compact = line.replace(/[^A-Za-z0-9]/g, '').toUpperCase().replace(/O/g, '0');
+          if (/^[0-9A-F]{8}$/.test(compact)) found.add(compact);
+        }
+        const unique = [...found];
+        if (unique.length === 0) {
+          statusEl.textContent = 'Номера не найдены. Попробуй более чёткий скриншот или введи вручную.';
+          return;
+        }
+        const ta = document.getElementById('issueChips');
+        const existing = ta.value.trim();
+        ta.value = existing ? (existing + '\n' + unique.join(', ')) : unique.join(', ');
+        updateIssuePreview();
+        statusEl.textContent = `Готово! Найдено кодов: ${unique.length}. Проверь список перед сохранением.`;
+      } catch (err) {
+        statusEl.textContent = 'Ошибка распознавания: ' + err.message;
+      }
+    }
+
+    document.getElementById('inputOcrImage').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) runOcrOnImage(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('modalIssue').addEventListener('paste', (e) => {
+      const items = (e.clipboardData && e.clipboardData.items) ? e.clipboardData.items : [];
+      for (const item of items) {
+        if (item.type && item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          if (blob) {
+            e.preventDefault();
+            runOcrOnImage(blob);
+            break;
+          }
+        }
+      }
+    });
+
     document.getElementById('issueChips').addEventListener('input', updateIssuePreview);
 
     document.getElementById('formIssue').addEventListener('submit', async (e) => {
@@ -2020,6 +2248,55 @@
       const ids = state.chips.filter(c => c.address === addr).map(c => c.id);
       openEditModal(ids, `Редактировать адрес (${ids.length} чип.)`);
     }
+
+    function openReceiptModal(addr) {
+      const list = state.chips.filter(c => c.address === addr);
+      if (list.length === 0) return;
+      const first = list[list.length - 1];
+      const uks = [...new Set(list.map(c => `${c.orgType || 'УК'}: ${c.uk}`))].join(', ');
+      const orgAddrs = [...new Set(list.map(c => c.orgAddress).filter(Boolean))].join('; ');
+      const contacts = [...new Set(list.map(c => `${c.recipient} (${c.phone})`))].join('; ');
+      const today = new Date().toLocaleDateString('ru-RU');
+      const actorName = currentUser ? (currentUser.displayName || currentUser.username) : 'Менеджер';
+
+      document.getElementById('receiptPrintArea').innerHTML = `
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Акт приёма-передачи ключей (чипов) домофона</div>
+          <div style="font-size:12px;color:#475569;margin-top:4px;">от ${escapeHtml(today)}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:13px;">
+          <tr><td style="padding:6px 8px;border:1px solid #cbd5e1;color:#475569;width:36%;">Объект (адрес дома)</td><td style="padding:6px 8px;border:1px solid #cbd5e1;font-weight:600;">${escapeHtml(addr)}</td></tr>
+          <tr><td style="padding:6px 8px;border:1px solid #cbd5e1;color:#475569;">Организация</td><td style="padding:6px 8px;border:1px solid #cbd5e1;">${escapeHtml(uks)}</td></tr>
+          ${orgAddrs ? `<tr><td style="padding:6px 8px;border:1px solid #cbd5e1;color:#475569;">Адрес организации</td><td style="padding:6px 8px;border:1px solid #cbd5e1;">${escapeHtml(orgAddrs)}</td></tr>` : ''}
+          <tr><td style="padding:6px 8px;border:1px solid #cbd5e1;color:#475569;">Получатель (ФИО, тел.)</td><td style="padding:6px 8px;border:1px solid #cbd5e1;">${escapeHtml(contacts)}</td></tr>
+          <tr><td style="padding:6px 8px;border:1px solid #cbd5e1;color:#475569;">Количество чипов</td><td style="padding:6px 8px;border:1px solid #cbd5e1;font-weight:600;">${list.length} шт.</td></tr>
+        </table>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#334155;">Перечень серийных номеров чипов:</div>
+          <div style="padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-family:monospace;font-size:12px;line-height:1.6;word-break:break-word;">
+            ${list.map(c => escapeHtml(c.chipNumber)).join(', ')}
+          </div>
+        </div>
+        <div style="font-size:12px;color:#475569;margin-bottom:24px;">
+          Претензий по количеству и внешнему виду ключей на момент передачи не имеется.
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:24px;font-size:13px;margin-top:28px;">
+          <div style="flex:1;">
+            <div style="font-weight:600;margin-bottom:18px;">Выдал (Гудлайн):</div>
+            <div>___________________ / ${escapeHtml(actorName)}</div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600;margin-bottom:18px;">Принял (представитель):</div>
+            <div>___________________ / ${escapeHtml(first.recipient)}</div>
+          </div>
+        </div>
+      `;
+      openModal('modalReceipt');
+    }
+
+    document.getElementById('btnPrintReceipt').addEventListener('click', () => {
+      window.print();
+    });
 
     document.getElementById('btnDetailEdit').addEventListener('click', () => {
       const chip = chipById.get(currentDetailChipId);
