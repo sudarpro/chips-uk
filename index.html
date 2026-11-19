@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Реестр чипов УК — Учёт и перепривязка</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; transition: background-color 0.2s, color 0.2s; }
+    .chip-badge { font-variant-numeric: tabular-nums; }
+    html.dark body { background-color: #0f172a; color: #f1f5f9; }
+    html.dark #authScreen { background-color: #0f172a; }
+    html.dark .bg-white { background-color: #1e293b !important; }
+    html.dark .bg-slate-50 { background-color: #0f172a !important; }
+    html.dark .bg-slate-50\/70, html.dark .bg-slate-50\/80 { background-color: rgba(15, 23, 42, 0.7) !important; }
+    html.dark .bg-slate-100 { background-color: #334155 !important; }
+    html.dark .hover\:bg-slate-100:hover, html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-50\/80:hover { background-color: #334155 !important; }
+    html.dark .hover\:bg-slate-200:hover { background-color: #475569 !important; }
+    html.dark .text-slate-900 { color: #f8fafc !important; }
+    html.dark .text-slate-800 { color: #e2e8f0 !important; }
+    html.dark .text-slate-700 { color: #cbd5e1 !important; }
+    html.dark .text-slate-600 { color: #94a3b8 !important; }
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .text-slate-400 { color: #64748b !important; }
+    html.dark .border-slate-200, html.dark .border-slate-200\/80, html.dark .border-slate-200\/70, html.dark .border-slate-100 { border-color: #334155 !important; }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155 !important; }
+    html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; color: #f1f5f9 !important; border-color: #334155 !important; }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b !important; }
+    html.dark .bg-blue-50 { background-color: rgba(37, 99, 235, 0.2) !important; }
+    html.dark .text-blue-700 { color: #93c5fd !important; }
+    html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.18) !important; }
+    html.dark .text-amber-800, html.dark .text-amber-700 { color: #fcd34d !important; }
+    html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.18) !important; }
+    html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+    html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.18) !important; }
+    html.dark .text-rose-700, html.dark .text-rose-600 { color: #fda4af !important; }
+    html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.2) !important; }
+    html.dark .text-purple-700 { color: #d8b4fe !important; }
+    html.dark .bg-sky-50 { background-color: rgba(14, 165, 233, 0.2) !important; }
+    html.dark .text-sky-700 { color: #7dd3fc !important; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <!-- Auth Screen -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100/80">
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200/80 max-w-sm w-full p-6 sm:p-7">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">🔑</div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900">Реестр чипов УК</h1>
+          <p class="text-xs text-slate-500">Вход в систему учёта</p>
+        </div>
+      </div>
+
+      <form id="formLogin" class="space-y-3.5">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label id="loginUsernameLabel" class="block text-xs font-semibold text-slate-600">Логин</label>
+            <span id="authModeBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Локальный режим</span>
+          </div>
+          <input id="loginUsername" type="text" required autocomplete="username" placeholder="admin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Пароль</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+          <input id="loginRemember" type="checkbox" class="rounded cursor-pointer" />
+          <span>Не выходить на этом устройстве</span>
+        </label>
+        <p id="loginError" class="hidden text-xs font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded-xl"></p>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+          Войти
+        </button>
+      </form>
+
+      <div id="defaultCredsHint" class="mt-4 pt-3.5 border-t border-slate-100 text-xs text-slate-500 leading-relaxed">
+        Первый вход (локально): логин <span class="font-mono font-semibold text-slate-700">admin</span>, пароль <span class="font-mono font-semibold text-slate-700">goodline2026</span>.
+      </div>
+      <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <button id="btnOpenSupabaseFromAuth" type="button" class="text-xs font-semibold text-emerald-700 hover:underline cursor-pointer">⚡ Настроить базу Supabase</button>
+        <button id="btnThemeAuth" type="button" class="theme-toggle-btn text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">🌙 Тёмная</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Shell -->
+  <div id="appShell" class="hidden max-w-6xl mx-auto px-4 py-5 sm:px-6">
+    <!-- Header -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">🔑</div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Реестр чипов: УК и службы</h1>
+              <span id="headerDbBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Локальная база</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500">Выдача, поиск по адресам и перепривязка ключей для УК, почты и обслуживающих компаний</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnOpenIssue" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+          <span>+ Выдать чипы</span>
+        </button>
+        <button id="btnOpenTransferGlobal" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+          <span>⇄ Перепривязать</span>
+        </button>
+        <div class="relative">
+          <button id="btnDataMenu" class="inline-flex items-center gap-1 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer">
+            <span>Данные ▾</span>
+          </button>
+          <div id="dataMenu" class="hidden absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-30">
+            <button id="btnExportCsv" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Скачать CSV (для Excel)</button>
+            <button id="btnExportJson" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Скачать резервную копию (JSON)</button>
+            <label class="block w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
+              Загрузить JSON
+              <input id="inputImportJson" type="file" accept=".json,application/json" class="hidden" />
+            </label>
+            <div class="border-t border-slate-100 my-1"></div>
+            <button id="btnOpenSupabase" class="w-full text-left px-3.5 py-2 text-sm text-emerald-700 font-medium hover:bg-emerald-50 cursor-pointer">⚡ Подключение Supabase</button>
+            <button id="btnSyncSupabase" class="hidden w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">↻ Обновить из Supabase</button>
+            <button id="btnManageUsers" class="w-full text-left px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Доступ (логины и пароли)</button>
+            <button id="btnResetDemo" class="w-full text-left px-3.5 py-2 text-sm text-rose-600 hover:bg-rose-50 cursor-pointer">Очистить / Демо-данные</button>
+          </div>
+        </div>
+        <button id="btnThemeHeader" class="theme-toggle-btn inline-flex items-center gap-1 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer" title="Переключить тему">🌙</button>
+        <button id="btnLogout" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-slate-700 text-sm font-medium transition cursor-pointer" title="Выйти из аккаунта">
+          <span id="currentUserBadge" class="text-xs font-semibold"></span>
+          <span>Выйти</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Всего чипов в учёте</div>
+        <div id="statTotalChips" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Активных адресов</div>
+        <div id="statTotalAddresses" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Организаций (УК и службы)</div>
+        <div id="statTotalUks" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Перепривязок</div>
+        <div id="statTotalTransfers" class="text-2xl font-bold text-amber-600 mt-1">0</div>
+      </div>
+    </section>
+
+    <!-- Search & Tabs -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm mb-5">
+      <div class="flex flex-col md:flex-row md:items-center gap-3 justify-between">
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <button data-tab="addresses" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-slate-900 shadow-sm transition cursor-pointer">По адресам</button>
+          <button data-tab="chips" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">Все чипы</button>
+          <button data-tab="history" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">История операций</button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2 flex-1 md:max-w-xl">
+          <div class="relative flex-1">
+            <input id="searchInput" type="text" placeholder="Поиск: адрес, номер чипа, УК, ФИО или телефон..." class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
+            <button id="btnClearSearch" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-sm cursor-pointer">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Filters -->
+      <div class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <select id="orgTypeFilter" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+          <option value="">Все типы</option>
+          <option value="УК">УК</option>
+          <option value="Лифтовая компания">Лифты</option>
+          <option value="Почта">Почта</option>
+          <option value="Аварийная / спецслужба">Аварийная</option>
+          <option value="Другая">Другая</option>
+        </select>
+        <select id="ukFilter" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+          <option value="">Все организации</option>
+        </select>
+        <select id="addressFilter" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+          <option value="">Все адреса</option>
+        </select>
+        <select id="personFilter" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+          <option value="">Все люди</option>
+        </select>
+        <select id="phoneFilter" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+          <option value="">Все телефоны</option>
+        </select>
+        <button id="btnResetFilters" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">Сбросить фильтры</button>
+      </div>
+
+      <!-- Bulk selection bar (for All Chips tab) -->
+      <div id="bulkBar" class="hidden mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+        <div class="text-sm text-slate-700">
+          Выбрано чипов: <span id="bulkCount" class="font-bold text-blue-600">0</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnSelectAllFiltered" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer">Выбрать все найденные</button>
+          <button id="btnBulkTransfer" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold cursor-pointer">⇄ Перепривязать выбранные</button>
+          <button id="btnBulkDeselect" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium cursor-pointer">Снять выделение</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="space-y-4"></main>
+  </div>
+
+  <!-- Modal: Issue Chips -->
+  <div id="modalIssue" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Выдать чипы на адрес</h2>
+        <button data-close="modalIssue" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <form id="formIssue" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес дома *</label>
+          <input id="issueAddress" list="addressList" required placeholder="Например: ул. Ленина, 112" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Тип организации *</label>
+            <select id="issueOrgType" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500">
+              <option value="УК">УК</option>
+              <option value="Лифтовая компания">Лифтовая компания</option>
+              <option value="Почта">Почта</option>
+              <option value="Аварийная / спецслужба">Аварийная / спецслужба</option>
+              <option value="Другая">Другая</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Организация (УК / служба) *</label>
+            <input id="issueUk" list="ukList" required placeholder="Напр.: УК «Уютный Дом» / Почта" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес организации (офис УК / службы)</label>
+          <input id="issueOrgAddress" placeholder="Например: ул. Советская, 10, оф. 5" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Кому выдано (ФИО / должность) *</label>
+            <input id="issueRecipient" required placeholder="Иванов Сергей (мастер)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Телефон *</label>
+            <input id="issuePhone" required placeholder="+7 (900) 123-45-67" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-600">Номера чипов (без ограничений) *</label>
+            <span id="issueParsedCount" class="text-xs font-medium text-blue-600">Распознано: 0</span>
+          </div>
+          <textarea id="issueChips" rows="3" required placeholder="Через запятую, с новой строки или любым диапазоном:&#10;0014521, 0014522, 0014523&#10;или 0000001-0015000" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"></textarea>
+          <p id="issueDupWarning" class="hidden text-xs text-rose-600 mt-1"></p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Дата выдачи</label>
+            <input id="issueDate" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Комментарий</label>
+            <input id="issueNote" placeholder="Например: 1-2 подъезд, под роспись" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close="modalIssue" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+          <button type="submit" id="btnSubmitIssue" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Сохранить выдачу</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Transfer / Re-bind Chips -->
+  <div id="modalTransfer" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Перепривязать чипы на другой адрес</h2>
+        <button data-close="modalTransfer" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <form id="formTransfer" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Откуда забираем (текущий адрес)</label>
+          <select id="transferSourceSelect" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"></select>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold text-slate-600">Какие чипы переносим (<span id="transferSelectedCount">0</span> из <span id="transferSourceTotal">0</span>)</label>
+            <div class="flex gap-2">
+              <button type="button" id="btnTransferSelectAll" class="text-xs text-blue-600 hover:underline cursor-pointer">Выбрать все</button>
+              <button type="button" id="btnTransferClearAll" class="text-xs text-slate-500 hover:underline cursor-pointer">Сбросить</button>
+            </div>
+          </div>
+          <input id="transferQuickFilter" type="text" placeholder="Фильтр или диапазон (напр. 0014521-0014600)..." class="w-full px-3 py-1.5 mb-2 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+          <div id="transferChipsGrid" class="max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2.5 bg-slate-50 flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Новый адрес привязки *</label>
+          <input id="transferDestAddress" list="addressList" required placeholder="Например: ул. Ленина, 115" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Тип организации *</label>
+            <select id="transferOrgType" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500">
+              <option value="УК">УК</option>
+              <option value="Лифтовая компания">Лифтовая компания</option>
+              <option value="Почта">Почта</option>
+              <option value="Аварийная / спецслужба">Аварийная / спецслужба</option>
+              <option value="Другая">Другая</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Организация (УК / служба) *</label>
+            <input id="transferUk" list="ukList" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес организации (офис УК / службы)</label>
+          <input id="transferOrgAddress" placeholder="Например: ул. Советская, 10, оф. 5" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Ответственный / кому выдано *</label>
+            <input id="transferRecipient" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Телефон *</label>
+            <input id="transferPhone" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Причина / комментарий</label>
+          <input id="transferComment" placeholder="Например: Перенос остатка чипов по просьбе УК" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500" />
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close="modalTransfer" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold cursor-pointer">Перепривязать</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Chip Details / History -->
+  <div id="modalChipDetail" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-bold text-slate-900">Чип <span id="detailChipNumber" class="font-mono text-blue-600"></span></h2>
+        <button data-close="modalChipDetail" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <div id="detailBody" class="space-y-3 text-sm"></div>
+      <div class="flex justify-between items-center pt-4 mt-4 border-t border-slate-100">
+        <button id="btnDeleteChip" class="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold cursor-pointer">Удалить чип</button>
+        <div class="flex gap-2">
+          <button id="btnDetailTransfer" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold cursor-pointer">⇄ Перепривязать</button>
+          <button data-close="modalChipDetail" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Reset / Demo Confirmation -->
+  <div id="modalReset" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5">
+      <h2 class="text-base font-bold text-slate-900 mb-2">Управление данными</h2>
+      <p class="text-sm text-slate-600 mb-4">Вы можете загрузить демонстрационные примеры (Ленина 112 / 115) или полностью очистить реестр.</p>
+      <div class="flex flex-col gap-2">
+        <button id="btnLoadDemoConfirm" class="w-full py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Загрузить демо-данные</button>
+        <button id="btnClearAllConfirm" class="w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold cursor-pointer">Очистить всё полностью</button>
+        <button data-close="modalReset" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Users & Access -->
+  <div id="modalUsers" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Доступ и пользователи</h2>
+        <button data-close="modalUsers" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+
+      <div id="usersList" class="space-y-2 mb-5"></div>
+
+      <div class="border-t border-slate-100 pt-4">
+        <h3 class="text-sm font-bold text-slate-800 mb-2.5">Добавить пользователя или сменить пароль</h3>
+        <form id="formAddUser" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Логин *</label>
+              <input id="newUserLogin" required placeholder="ivanov" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Имя (опционально)</label>
+              <input id="newUserName" placeholder="Иван (менеджер)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Новый пароль *</label>
+            <input id="newUserPass" type="password" required minlength="4" placeholder="Минимум 4 символа" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500" />
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="button" data-close="modalUsers" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Закрыть</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Supabase Config -->
+  <div id="modalSupabase" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-bold text-slate-900">Подключение облачной базы Supabase</h2>
+        <button data-close="modalSupabase" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+        Укажи <b>Project URL</b> и <b>Anon / Publishable Key</b> из настроек проекта Supabase (Project Settings → API). После сохранения вход и все данные будут работать через облачную PostgreSQL-базу.
+      </p>
+      <form id="formSupabase" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Supabase Project URL *</label>
+          <input id="sbUrl" type="url" required placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Anon / Publishable Key *</label>
+          <input id="sbKey" type="text" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500" />
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+          <button id="btnDisconnectSupabase" type="button" class="hidden px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold cursor-pointer">Отключить Supabase</button>
+          <div class="flex gap-2 ml-auto">
+            <button type="button" data-close="modalSupabase" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold cursor-pointer">Сохранить и подключить</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg"></div>
+
+  <!-- Datalists -->
+  <datalist id="addressList"></datalist>
+  <datalist id="ukList"></datalist>
+
+  <script>
+    const STORAGE_KEY = 'goodline_uk_chips_v1';
+    const USERS_STORAGE_KEY = 'goodline_uk_users_v1';
+    const SESSION_KEY = 'goodline_uk_session_v1';
+    const SB_CFG_KEY = 'goodline_uk_supabase_cfg_v1';
+
+    let sbConfig = null; // { url, key }
+    let sbTokens = null; // { access_token, refresh_token }
+
+    const DEFAULT_SB_CONFIG = {
+      url: 'https://zwojmogydxtkfqlxsfhz.supabase.co',
+      key: 'sb_publishable_MLsQmIfM73WGrurNvU37fQ_OQ-E3Uka'
+    };
+
+    function loadSbConfig() {
+      try {
+        const raw = localStorage.getItem(SB_CFG_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p && p.url && p.key) {
+            sbConfig = { url: p.url.replace(/\/+$/, ''), key: p.key.trim() };
+            return;
+          }
+        }
+      } catch (e) {}
+      sbConfig = { ...DEFAULT_SB_CONFIG };
+    }
+
+    function saveSbConfig(cfg) {
+      sbConfig = cfg;
+      try {
+        if (cfg) localStorage.setItem(SB_CFG_KEY, JSON.stringify(cfg));
+        else localStorage.removeItem(SB_CFG_KEY);
+      } catch (e) {}
+    }
+
+    function isSupabaseMode() {
+      return Boolean(sbConfig && sbConfig.url && sbConfig.key);
+    }
+
+    async function sbFetch(path, options = {}) {
+      if (!isSupabaseMode()) throw new Error('Supabase не настроен');
+      const headers = Object.assign({
+        'apikey': sbConfig.key,
+        'Content-Type': 'application/json'
+      }, options.headers || {});
+      if (sbTokens && sbTokens.access_token && !headers['Authorization']) {
+        headers['Authorization'] = 'Bearer ' + sbTokens.access_token;
+      }
+      const res = await fetch(sbConfig.url + path, Object.assign({}, options, { headers }));
+      if (res.status === 401 && sbTokens && sbTokens.refresh_token && !options._retried) {
+        const refreshed = await sbRefreshSession();
+        if (refreshed) {
+          return sbFetch(path, Object.assign({}, options, { _retried: true }));
+        }
+      }
+      if (!res.ok) {
+        let errText = 'Ошибка запроса ' + res.status;
+        try {
+          const errJson = await res.json();
+          errText = errJson.error_description || errJson.message || errJson.msg || errText;
+        } catch (e) {}
+        throw new Error(errText);
+      }
+      if (res.status === 204) return null;
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    async function sbRefreshSession() {
+      if (!isSupabaseMode() || !sbTokens || !sbTokens.refresh_token) return false;
+      try {
+        const res = await fetch(sbConfig.url + '/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST',
+          headers: { 'apikey': sbConfig.key, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: sbTokens.refresh_token })
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        sbTokens = { access_token: data.access_token, refresh_token: data.refresh_token };
+        if (currentUser) {
+          currentUser.sbTokens = sbTokens;
+          setSavedSession(currentUser, Boolean(localStorage.getItem(SESSION_KEY)));
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function mapDbRowToChip(r) {
+      return {
+        id: r.id,
+        chipNumber: r.chip_number,
+        address: r.address,
+        orgType: r.org_type || 'УК',
+        orgAddress: r.org_address || '',
+        uk: r.uk,
+        recipient: r.recipient,
+        phone: r.phone,
+        issuedAt: r.issued_at || '',
+        note: r.note || '',
+        history: Array.isArray(r.history) ? r.history : []
+      };
+    }
+
+    function mapChipToDbRow(c) {
+      return {
+        id: c.id,
+        chip_number: c.chipNumber,
+        address: c.address,
+        org_type: c.orgType || 'УК',
+        org_address: c.orgAddress || '',
+        uk: c.uk,
+        recipient: c.recipient,
+        phone: c.phone,
+        issued_at: c.issuedAt || '',
+        note: c.note || '',
+        history: c.history || []
+      };
+    }
+
+    function mapDbRowToLog(r) {
+      return {
+        id: r.id,
+        date: r.date,
+        action: r.action,
+        fromAddress: r.from_address || null,
+        toAddress: r.to_address,
+        orgType: r.org_type || 'УК',
+        orgAddress: r.org_address || '',
+        uk: r.uk,
+        recipient: r.recipient,
+        phone: r.phone,
+        chips: Array.isArray(r.chips) ? r.chips : [],
+        comment: r.comment || ''
+      };
+    }
+
+    function mapLogToDbRow(l) {
+      return {
+        id: l.id,
+        date: l.date,
+        action: l.action,
+        from_address: l.fromAddress || null,
+        to_address: l.toAddress,
+        org_type: l.orgType || 'УК',
+        org_address: l.orgAddress || '',
+        uk: l.uk,
+        recipient: l.recipient,
+        phone: l.phone,
+        chips: l.chips || [],
+        comment: l.comment || ''
+      };
+    }
+
+    async function sbLoadAllData() {
+      if (!isSupabaseMode() || !sbTokens) return;
+      const allChips = [];
+      let offset = 0;
+      const pageSize = 1000;
+      while (true) {
+        const rows = await sbFetch(`/rest/v1/chips?select=*&order=created_at.asc`, {
+          headers: { 'Range': `${offset}-${offset + pageSize - 1}` }
+        });
+        if (!Array.isArray(rows) || rows.length === 0) break;
+        for (const r of rows) allChips.push(mapDbRowToChip(r));
+        if (rows.length < pageSize) break;
+        offset += pageSize;
+      }
+      const logRows = await sbFetch(`/rest/v1/chip_logs?select=*&order=created_at.desc&limit=500`);
+      state = {
+        chips: allChips,
+        logs: Array.isArray(logRows) ? logRows.map(mapDbRowToLog) : []
+      };
+      rebuildIndexes();
+    }
+
+    async function sbUpsertChipsBatch(chipsArr) {
+      const chunkSize = 500;
+      for (let i = 0; i < chipsArr.length; i += chunkSize) {
+        const chunk = chipsArr.slice(i, i + chunkSize).map(mapChipToDbRow);
+        await sbFetch('/rest/v1/chips', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(chunk)
+        });
+      }
+    }
+
+    async function sbInsertLog(logObj) {
+      await sbFetch('/rest/v1/chip_logs', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify(mapLogToDbRow(logObj))
+      });
+    }
+    const IDB_NAME = 'GoodlineChipsRegistryDB';
+    const IDB_STORE = 'stateStore';
+    const IDB_KEY = 'mainState';
+
+    const ADDRESS_CHIPS_INITIAL_LIMIT = 24;
+    const TRANSFER_GRID_LIMIT = 120;
+    const LOG_CHIPS_LIMIT = 30;
+
+    function createDemoState() {
+      return {
+        chips: [
+          {
+            id: 'c1', chipNumber: '0014521', address: 'ул. Ленина, 112', uk: 'УК «Центральная»',
+            recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', issuedAt: '2026-11-10',
+            note: '1-2 подъезд',
+            history: [
+              { date: '2026-11-10T09:30:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'УК «Центральная»', recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', comment: 'Выдано 4 чипа на дом' }
+            ]
+          },
+          {
+            id: 'c2', chipNumber: '0014522', address: 'ул. Ленина, 112', uk: 'УК «Центральная»',
+            recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', issuedAt: '2026-11-10',
+            note: '1-2 подъезд',
+            history: [
+              { date: '2026-11-10T09:30:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'УК «Центральная»', recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', comment: 'Выдано 4 чипа на дом' }
+            ]
+          },
+          {
+            id: 'c3', chipNumber: '0014523', address: 'ул. Ленина, 115', uk: 'УК «Центральная»',
+            recipient: 'Смирнова Ольга (диспетчер)', phone: '+7 (905) 912-44-55', issuedAt: '2026-11-10',
+            note: 'Перенесено с Ленина 112',
+            history: [
+              { date: '2026-11-10T09:30:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'УК «Центральная»', recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', comment: 'Выдано 4 чипа на дом' },
+              { date: '2026-11-14T14:20:00', action: 'Перепривязка', fromAddress: 'ул. Ленина, 112', toAddress: 'ул. Ленина, 115', uk: 'УК «Центральная»', recipient: 'Смирнова Ольга (диспетчер)', phone: '+7 (905) 912-44-55', comment: 'Остаток чипов перепривязан на соседний дом' }
+            ]
+          },
+          {
+            id: 'c4', chipNumber: '0014524', address: 'ул. Ленина, 115', uk: 'УК «Центральная»',
+            recipient: 'Смирнова Ольга (диспетчер)', phone: '+7 (905) 912-44-55', issuedAt: '2026-11-10',
+            note: 'Перенесено с Ленина 112',
+            history: [
+              { date: '2026-11-10T09:30:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'УК «Центральная»', recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', comment: 'Выдано 4 чипа на дом' },
+              { date: '2026-11-14T14:20:00', action: 'Перепривязка', fromAddress: 'ул. Ленина, 112', toAddress: 'ул. Ленина, 115', uk: 'УК «Центральная»', recipient: 'Смирнова Ольга (диспетчер)', phone: '+7 (905) 912-44-55', comment: 'Остаток чипов перепривязан на соседний дом' }
+            ]
+          },
+          {
+            id: 'c5', chipNumber: '0089101', address: 'пр. Шахтёров, 48', uk: 'УК «Сибирь-Сервис»',
+            recipient: 'Кузнецов Дмитрий', phone: '+7 (923) 455-80-90', issuedAt: '2026-11-17',
+            note: 'Для аварийной службы',
+            history: [
+              { date: '2026-11-17T11:05:00', action: 'Выдача', fromAddress: null, toAddress: 'пр. Шахтёров, 48', uk: 'УК «Сибирь-Сервис»', recipient: 'Кузнецов Дмитрий', phone: '+7 (923) 455-80-90', comment: 'Для аварийной службы' }
+            ]
+          },
+          {
+            id: 'c6', chipNumber: '0089102', address: 'пр. Шахтёров, 48', uk: 'УК «Сибирь-Сервис»',
+            recipient: 'Кузнецов Дмитрий', phone: '+7 (923) 455-80-90', issuedAt: '2026-11-17',
+            note: 'Для аварийной службы',
+            history: [
+              { date: '2026-11-17T11:05:00', action: 'Выдача', fromAddress: null, toAddress: 'пр. Шахтёров, 48', uk: 'УК «Сибирь-Сервис»', recipient: 'Кузнецов Дмитрий', phone: '+7 (923) 455-80-90', comment: 'Для аварийной службы' }
+            ]
+          },
+          {
+            id: 'c7', chipNumber: '0055201', address: 'ул. Ленина, 112', uk: 'ООО «КузбассЛифт»', orgType: 'Лифтовая компания',
+            recipient: 'Соколов Игорь (механик)', phone: '+7 (913) 310-77-88', issuedAt: '2026-11-18',
+            note: 'Обслуживание лифтов',
+            history: [
+              { date: '2026-11-18T10:00:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'ООО «КузбассЛифт»', orgType: 'Лифтовая компания', recipient: 'Соколов Игорь (механик)', phone: '+7 (913) 310-77-88', comment: 'Обслуживание лифтов' }
+            ]
+          },
+          {
+            id: 'c8', chipNumber: '0077010', address: 'ул. Ленина, 115', uk: 'Почта России', orgType: 'Почта',
+            recipient: 'Николаева Елена (почтальон)', phone: '+7 (904) 615-20-30', issuedAt: '2026-11-18',
+            note: 'Доставка корреспонденции',
+            history: [
+              { date: '2026-11-18T12:15:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 115', uk: 'Почта России', orgType: 'Почта', recipient: 'Николаева Елена (почтальон)', phone: '+7 (904) 615-20-30', comment: 'Доставка корреспонденции' }
+            ]
+          }
+        ],
+        logs: [
+          { id: 'l1', date: '2026-11-17T11:05:00', action: 'Выдача', fromAddress: null, toAddress: 'пр. Шахтёров, 48', uk: 'УК «Сибирь-Сервис»', recipient: 'Кузнецов Дмитрий', phone: '+7 (923) 455-80-90', chips: ['0089101', '0089102'], comment: 'Для аварийной службы' },
+          { id: 'l2', date: '2026-11-14T14:20:00', action: 'Перепривязка', fromAddress: 'ул. Ленина, 112', toAddress: 'ул. Ленина, 115', uk: 'УК «Центральная»', recipient: 'Смирнова Ольга (диспетчер)', phone: '+7 (905) 912-44-55', chips: ['0014523', '0014524'], comment: 'Остаток чипов перепривязан на соседний дом' },
+          { id: 'l3', date: '2026-11-10T09:30:00', action: 'Выдача', fromAddress: null, toAddress: 'ул. Ленина, 112', uk: 'УК «Центральная»', recipient: 'Петров Алексей', phone: '+7 (903) 901-22-11', chips: ['0014521', '0014522', '0014523', '0014524'], comment: 'Выдано 4 чипа на дом' }
+        ]
+      };
+    }
+
+    let state = { chips: [], logs: [] };
+    let chipByNumber = new Map();
+    let chipById = new Map();
+    let activeTab = 'addresses';
+    let searchQuery = '';
+    let selectedUk = '';
+    let selectedOrgType = '';
+    let selectedAddress = '';
+    let selectedPerson = '';
+    let selectedPhone = '';
+    let selectedChipIds = new Set();
+    let currentDetailChipId = null;
+
+    // Pagination & expansion states for huge datasets
+    let chipsPage = 1;
+    let chipsPageSize = 100;
+    let historyPage = 1;
+    const historyPageSize = 50;
+    let expandedAddresses = new Map(); // address -> limit
+    let expandedLogs = new Set();
+
+    // Transfer modal state
+    let transferSelectedSet = new Set();
+    let transferFilterText = '';
+    let transferDisplayLimit = TRANSFER_GRID_LIMIT;
+
+    function rebuildIndexes() {
+      chipByNumber = new Map();
+      chipById = new Map();
+      for (const c of state.chips) {
+        chipByNumber.set(c.chipNumber, c);
+        chipById.set(c.id, c);
+      }
+    }
+
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error('No IndexedDB'));
+          return;
+        }
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            db.createObjectStore(IDB_STORE);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function idbGet(key) {
+      const db = await openDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function idbSet(key, val) {
+      const db = await openDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function loadState() {
+      try {
+        const fromIdb = await idbGet(IDB_KEY);
+        if (fromIdb && Array.isArray(fromIdb.chips)) {
+          state = { chips: fromIdb.chips, logs: Array.isArray(fromIdb.logs) ? fromIdb.logs : [] };
+          rebuildIndexes();
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.chips)) {
+            state = { chips: parsed.chips, logs: Array.isArray(parsed.logs) ? parsed.logs : [] };
+            rebuildIndexes();
+            saveState();
+            return;
+          }
+        }
+      } catch (e) {}
+
+      state = createDemoState();
+      rebuildIndexes();
+      saveState();
+    }
+
+    function saveState() {
+      idbSet(IDB_KEY, state).catch(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+      });
+    }
+
+    function uid() {
+      return 'id_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('Скопировано в буфер')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Скопировано в буфер');
+      } catch (e) {
+        showToast('Не удалось скопировать');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
+    }
+
+    function getOrgTypeBadge(orgType) {
+      const t = orgType || 'УК';
+      const styles = {
+        'УК': 'bg-blue-50 text-blue-700',
+        'Лифтовая компания': 'bg-purple-50 text-purple-700',
+        'Почта': 'bg-sky-50 text-sky-700',
+        'Аварийная / спецслужба': 'bg-rose-50 text-rose-700',
+        'Другая': 'bg-slate-100 text-slate-700'
+      };
+      return `<span class="text-xs font-medium px-2 py-0.5 rounded-md ${styles[t] || styles['Другая']}">${escapeHtml(t)}</span>`;
+    }
+
+    function formatDateTime(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function countChipNumbersFast(raw) {
+      const tokens = raw.split(/[\s,;]+/).map(t => t.trim()).filter(Boolean);
+      let count = 0;
+      for (const token of tokens) {
+        const rangeMatch = token.match(/^(\d+)-(\d+)$/);
+        if (rangeMatch) {
+          const start = parseInt(rangeMatch[1], 10);
+          const end = parseInt(rangeMatch[2], 10);
+          if (!isNaN(start) && !isNaN(end) && end >= start) {
+            count += (end - start + 1);
+            continue;
+          }
+        }
+        count += 1;
+      }
+      return count;
+    }
+
+    function parseChipNumbers(raw) {
+      const tokens = raw.split(/[\s,;]+/).map(t => t.trim()).filter(Boolean);
+      const result = [];
+      const seen = new Set();
+      for (const token of tokens) {
+        const rangeMatch = token.match(/^(\d+)-(\d+)$/);
+        if (rangeMatch) {
+          const startStr = rangeMatch[1];
+          const endStr = rangeMatch[2];
+          const start = parseInt(startStr, 10);
+          const end = parseInt(endStr, 10);
+          if (!isNaN(start) && !isNaN(end) && end >= start) {
+            const padLen = startStr.length;
+            for (let n = start; n <= end; n++) {
+              const val = String(n).padStart(padLen, '0');
+              if (!seen.has(val)) { seen.add(val); result.push(val); }
+            }
+            continue;
+          }
+        }
+        if (!seen.has(token)) {
+          seen.add(token);
+          result.push(token);
+        }
+      }
+      return result;
+    }
+
+    function getFilteredChips() {
+      const q = searchQuery.trim().toLowerCase();
+      return state.chips.filter(c => {
+        const cType = c.orgType || 'УК';
+        if (selectedOrgType && cType !== selectedOrgType) return false;
+        if (selectedUk && c.uk !== selectedUk) return false;
+        if (selectedAddress && c.address !== selectedAddress) return false;
+        if (selectedPerson && c.recipient !== selectedPerson) return false;
+        if (selectedPhone && c.phone !== selectedPhone) return false;
+        if (!q) return true;
+        return (
+          c.chipNumber.toLowerCase().includes(q) ||
+          c.address.toLowerCase().includes(q) ||
+          c.uk.toLowerCase().includes(q) ||
+          (c.orgAddress && c.orgAddress.toLowerCase().includes(q)) ||
+          cType.toLowerCase().includes(q) ||
+          c.recipient.toLowerCase().includes(q) ||
+          c.phone.toLowerCase().includes(q) ||
+          (c.note && c.note.toLowerCase().includes(q))
+        );
+      });
+    }
+
+    function updateMetadata() {
+      const addrSet = new Set();
+      const ukSet = new Set();
+      const personSet = new Set();
+      const phoneSet = new Set();
+      for (const c of state.chips) {
+        if (c.address) addrSet.add(c.address);
+        if (c.uk) ukSet.add(c.uk);
+        if (c.recipient) personSet.add(c.recipient);
+        if (c.phone) phoneSet.add(c.phone);
+      }
+      const addresses = [...addrSet].sort();
+      const uks = [...ukSet].sort();
+      const persons = [...personSet].sort();
+      const phones = [...phoneSet].sort();
+      let transfersCount = 0;
+      for (const l of state.logs) {
+        if (l.action === 'Перепривязка') transfersCount++;
+      }
+
+      document.getElementById('statTotalChips').textContent = state.chips.length.toLocaleString('ru-RU');
+      document.getElementById('statTotalAddresses').textContent = addresses.length.toLocaleString('ru-RU');
+      document.getElementById('statTotalUks').textContent = uks.length.toLocaleString('ru-RU');
+      document.getElementById('statTotalTransfers').textContent = transfersCount.toLocaleString('ru-RU');
+
+      document.getElementById('addressList').innerHTML = addresses.map(a => `<option value="${escapeHtml(a)}">`).join('');
+      document.getElementById('ukList').innerHTML = uks.map(u => `<option value="${escapeHtml(u)}">`).join('');
+
+      const ukSelect = document.getElementById('ukFilter');
+      const prevUk = ukSelect.value;
+      ukSelect.innerHTML = '<option value="">Все организации</option>' + uks.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+      if (ukSet.has(prevUk)) ukSelect.value = prevUk;
+
+      const addrSelect = document.getElementById('addressFilter');
+      const prevAddr = addrSelect.value;
+      addrSelect.innerHTML = '<option value="">Все адреса</option>' + addresses.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      if (addrSet.has(prevAddr)) addrSelect.value = prevAddr;
+
+      const personSelect = document.getElementById('personFilter');
+      const prevPerson = personSelect.value;
+      personSelect.innerHTML = '<option value="">Все люди</option>' + persons.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+      if (personSet.has(prevPerson)) personSelect.value = prevPerson;
+
+      const phoneSelect = document.getElementById('phoneFilter');
+      const prevPhone = phoneSelect.value;
+      phoneSelect.innerHTML = '<option value="">Все телефоны</option>' + phones.map(ph => `<option value="${escapeHtml(ph)}">${escapeHtml(ph)}</option>`).join('');
+      if (phoneSet.has(prevPhone)) phoneSelect.value = prevPhone;
+    }
+
+    function render() {
+      updateMetadata();
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === activeTab;
+        btn.className = isActive
+          ? 'tab-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-slate-900 shadow-sm transition cursor-pointer'
+          : 'tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer';
+      });
+
+      const bulkBar = document.getElementById('bulkBar');
+      if (activeTab === 'chips' && selectedChipIds.size > 0) {
+        bulkBar.classList.remove('hidden');
+        document.getElementById('bulkCount').textContent = selectedChipIds.size.toLocaleString('ru-RU');
+      } else {
+        bulkBar.classList.add('hidden');
+      }
+
+      const main = document.getElementById('mainContent');
+      if (activeTab === 'addresses') renderAddressesTab(main);
+      else if (activeTab === 'chips') renderChipsTab(main);
+      else renderHistoryTab(main);
+    }
+
+    function renderAddressesTab(container) {
+      const filtered = getFilteredChips();
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center">
+            <div class="text-3xl mb-2">📭</div>
+            <div class="font-semibold text-slate-800">Записей не найдено</div>
+            <p class="text-sm text-slate-500 mt-1">Попробуй изменить поиск или нажми «+ Выдать чипы», чтобы добавить первый адрес.</p>
+          </div>`;
+        return;
+      }
+
+      const groups = new Map();
+      for (const chip of filtered) {
+        if (!groups.has(chip.address)) groups.set(chip.address, []);
+        groups.get(chip.address).push(chip);
+      }
+
+      let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+      for (const [address, chips] of groups.entries()) {
+        const latest = chips[chips.length - 1];
+        const orgBadges = [...new Set(chips.map(c => `${c.orgType || 'УК'}|||${c.uk}`))].map(pair => {
+          const [t, name] = pair.split('|||');
+          return `<span class="inline-flex items-center gap-1 mt-1 mr-1">${getOrgTypeBadge(t)} <span class="text-xs font-semibold text-slate-700">${escapeHtml(name)}</span></span>`;
+        }).join('');
+        const orgAddrs = [...new Set(chips.map(c => c.orgAddress).filter(Boolean))];
+        const contacts = [...new Set(chips.map(c => `${c.orgType || 'УК'}: ${c.recipient} (${c.phone})`))];
+        const limit = expandedAddresses.get(address) || ADDRESS_CHIPS_INITIAL_LIMIT;
+        const visibleChips = chips.slice(0, limit);
+        const remaining = chips.length - visibleChips.length;
+
+        html += `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">${escapeHtml(address)}</h3>
+                  <div class="flex flex-wrap items-center">${orgBadges}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold shrink-0">${chips.length.toLocaleString('ru-RU')} шт.</span>
+              </div>
+
+              <div class="text-xs text-slate-600 space-y-1 mb-3">
+                ${orgAddrs.map(oa => `<div>🏢 Офис: ${escapeHtml(oa)}</div>`).join('')}
+                ${contacts.map(ct => `<div>👤 ${escapeHtml(ct)}</div>`).join('')}
+                ${latest.note ? `<div class="text-slate-500">💬 ${escapeHtml(latest.note)}</div>` : ''}
+              </div>
+
+              <div class="flex flex-wrap gap-1.5 items-center">
+                ${visibleChips.map(c => `
+                  <button data-chip-id="${c.id}" class="chip-badge open-chip-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200/80 text-xs font-mono font-semibold text-slate-800 transition cursor-pointer" title="Открыть историю чипа">
+                    ${escapeHtml(c.chipNumber)}
+                  </button>
+                `).join('')}
+                ${remaining > 0 ? `
+                  <button data-addr="${escapeHtml(address)}" class="btn-addr-more px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition cursor-pointer">
+                    + ещё ${remaining.toLocaleString('ru-RU')}
+                  </button>
+                  <button data-addr="${escapeHtml(address)}" class="btn-addr-table px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium transition cursor-pointer">
+                    Открыть в таблице
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+              <button data-addr="${escapeHtml(address)}" class="btn-addr-transfer px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition cursor-pointer">
+                ⇄ Перепривязать с этого адреса
+              </button>
+              <button data-addr="${escapeHtml(address)}" class="btn-addr-copy px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition cursor-pointer">
+                📋 Копировать сводку
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      container.querySelectorAll('.open-chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => openChipDetail(btn.dataset.chipId));
+      });
+      container.querySelectorAll('.btn-addr-more').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const addr = btn.dataset.addr;
+          const cur = expandedAddresses.get(addr) || ADDRESS_CHIPS_INITIAL_LIMIT;
+          expandedAddresses.set(addr, cur + 100);
+          render();
+        });
+      });
+      container.querySelectorAll('.btn-addr-table').forEach(btn => {
+        btn.addEventListener('click', () => {
+          searchQuery = btn.dataset.addr;
+          document.getElementById('searchInput').value = searchQuery;
+          document.getElementById('btnClearSearch').classList.remove('hidden');
+          chipsPage = 1;
+          activeTab = 'chips';
+          render();
+        });
+      });
+      container.querySelectorAll('.btn-addr-transfer').forEach(btn => {
+        btn.addEventListener('click', () => openTransferModal(btn.dataset.addr, null));
+      });
+      container.querySelectorAll('.btn-addr-copy').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const addr = btn.dataset.addr;
+          const list = state.chips.filter(c => c.address === addr);
+          const uks = [...new Set(list.map(c => c.uk))].join(', ');
+          const contacts = [...new Set(list.map(c => `${c.recipient} (${c.phone})`))].join('; ');
+          const nums = list.length <= 500
+            ? list.map(c => c.chipNumber).join(', ')
+            : `${list.slice(0, 200).map(c => c.chipNumber).join(', ')} ... и ещё ${list.length - 200} шт.`;
+          copyText(`Адрес: ${addr}\nУК: ${uks}\nКому выдано: ${contacts}\nЧипы (${list.length} шт.): ${nums}`);
+        });
+      });
+    }
+
+    function renderChipsTab(container) {
+      const filtered = getFilteredChips();
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center text-sm text-slate-500">Чипы не найдены</div>`;
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / chipsPageSize));
+      if (chipsPage > totalPages) chipsPage = totalPages;
+      const startIdx = (chipsPage - 1) * chipsPageSize;
+      const pageItems = filtered.slice(startIdx, startIdx + chipsPageSize);
+      const pageAllSelected = pageItems.length > 0 && pageItems.every(c => selectedChipIds.has(c.id));
+
+      let html = `
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+            <div>
+              Показано <span class="font-semibold text-slate-900">${(startIdx + 1).toLocaleString('ru-RU')}–${(startIdx + pageItems.length).toLocaleString('ru-RU')}</span> из <span class="font-semibold text-slate-900">${filtered.length.toLocaleString('ru-RU')}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1">
+                На странице:
+                <select id="selPageSize" class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs">
+                  <option value="100" ${chipsPageSize === 100 ? 'selected' : ''}>100</option>
+                  <option value="250" ${chipsPageSize === 250 ? 'selected' : ''}>250</option>
+                  <option value="500" ${chipsPageSize === 500 ? 'selected' : ''}>500</option>
+                </select>
+              </label>
+              <button id="btnPrevPage" ${chipsPage <= 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 cursor-pointer">←</button>
+              <span class="font-medium">${chipsPage} / ${totalPages}</span>
+              <button id="btnNextPage" ${chipsPage >= totalPages ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 cursor-pointer">→</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500">
+                  <th class="p-3 w-10"><input id="chkSelectAllChips" type="checkbox" ${pageAllSelected ? 'checked' : ''} class="rounded cursor-pointer" title="Выбрать страницу" /></th>
+                  <th class="p-3">№ чипа</th>
+                  <th class="p-3">Текущий адрес</th>
+                  <th class="p-3">Организация</th>
+                  <th class="p-3">Кому выдано</th>
+                  <th class="p-3">Телефон</th>
+                  <th class="p-3">Дата</th>
+                  <th class="p-3 text-right">Действия</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${pageItems.map(c => `
+                  <tr class="hover:bg-slate-50/80">
+                    <td class="p-3"><input type="checkbox" data-id="${c.id}" class="chk-chip rounded cursor-pointer" ${selectedChipIds.has(c.id) ? 'checked' : ''} /></td>
+                    <td class="p-3 font-mono font-semibold text-blue-700">
+                      <button data-chip-id="${c.id}" class="open-chip-btn hover:underline cursor-pointer">${escapeHtml(c.chipNumber)}</button>
+                    </td>
+                    <td class="p-3 font-medium text-slate-900">${escapeHtml(c.address)}</td>
+                    <td class="p-3 text-slate-600"><div class="flex flex-wrap items-center gap-1">${getOrgTypeBadge(c.orgType)}<span>${escapeHtml(c.uk)}</span></div>${c.orgAddress ? `<div class="text-xs text-slate-400 mt-0.5">🏢 ${escapeHtml(c.orgAddress)}</div>` : ''}</td>
+                    <td class="p-3 text-slate-700">${escapeHtml(c.recipient)}</td>
+                    <td class="p-3 text-slate-600 whitespace-nowrap">${escapeHtml(c.phone)}</td>
+                    <td class="p-3 text-slate-500 whitespace-nowrap">${escapeHtml(c.issuedAt || '')}</td>
+                    <td class="p-3 text-right whitespace-nowrap">
+                      <button data-chip-id="${c.id}" class="btn-row-transfer text-xs font-semibold text-amber-700 hover:text-amber-800 px-2 py-1 rounded-lg hover:bg-amber-50 cursor-pointer">⇄ Перенести</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      container.innerHTML = html;
+
+      document.getElementById('selPageSize').addEventListener('change', (e) => {
+        chipsPageSize = parseInt(e.target.value, 10) || 100;
+        chipsPage = 1;
+        render();
+      });
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (chipsPage > 1) { chipsPage--; render(); }
+      });
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        if (chipsPage < totalPages) { chipsPage++; render(); }
+      });
+
+      document.getElementById('chkSelectAllChips').addEventListener('change', (e) => {
+        if (e.target.checked) pageItems.forEach(c => selectedChipIds.add(c.id));
+        else pageItems.forEach(c => selectedChipIds.delete(c.id));
+        render();
+      });
+      container.querySelectorAll('.chk-chip').forEach(chk => {
+        chk.addEventListener('change', () => {
+          if (chk.checked) selectedChipIds.add(chk.dataset.id);
+          else selectedChipIds.delete(chk.dataset.id);
+          render();
+        });
+      });
+      container.querySelectorAll('.open-chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => openChipDetail(btn.dataset.chipId));
+      });
+      container.querySelectorAll('.btn-row-transfer').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const chip = chipById.get(btn.dataset.chipId);
+          if (chip) openTransferModal(chip.address, [chip.id]);
+        });
+      });
+    }
+
+    function renderHistoryTab(container) {
+      const q = searchQuery.trim().toLowerCase();
+      const logs = state.logs.filter(l => {
+        if (selectedOrgType && (l.orgType || 'УК') !== selectedOrgType) return false;
+        if (selectedUk && l.uk !== selectedUk) return false;
+        if (selectedAddress && l.toAddress !== selectedAddress && l.fromAddress !== selectedAddress) return false;
+        if (selectedPerson && l.recipient !== selectedPerson) return false;
+        if (selectedPhone && l.phone !== selectedPhone) return false;
+        if (!q) return true;
+        return (
+          (l.fromAddress && l.fromAddress.toLowerCase().includes(q)) ||
+          l.toAddress.toLowerCase().includes(q) ||
+          l.uk.toLowerCase().includes(q) ||
+          l.recipient.toLowerCase().includes(q) ||
+          l.chips.some(num => num.toLowerCase().includes(q))
+        );
+      });
+
+      if (logs.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center text-sm text-slate-500">История операций пуста</div>`;
+        return;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(logs.length / historyPageSize));
+      if (historyPage > totalPages) historyPage = totalPages;
+      const startIdx = (historyPage - 1) * historyPageSize;
+      const pageLogs = logs.slice(startIdx, startIdx + historyPageSize);
+
+      container.innerHTML = `
+        <div class="space-y-3">
+          ${totalPages > 1 ? `
+            <div class="flex items-center justify-between bg-white rounded-xl border border-slate-200/80 px-4 py-2 text-xs text-slate-600">
+              <span>Операций: ${logs.length.toLocaleString('ru-RU')}</span>
+              <div class="flex items-center gap-2">
+                <button id="btnHistPrev" ${historyPage <= 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 cursor-pointer">←</button>
+                <span class="font-medium">${historyPage} / ${totalPages}</span>
+                <button id="btnHistNext" ${historyPage >= totalPages ? 'disabled' : ''} class="px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 cursor-pointer">→</button>
+              </div>
+            </div>
+          ` : ''}
+          ${pageLogs.map(l => {
+            const isTransfer = l.action === 'Перепривязка';
+            const isExpanded = expandedLogs.has(l.id);
+            const shownChips = isExpanded ? l.chips : l.chips.slice(0, LOG_CHIPS_LIMIT);
+            const restCount = l.chips.length - shownChips.length;
+            return `
+              <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isTransfer ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+                      ${isTransfer ? '⇄ Перепривязка' : '+ Выдача'}
+                    </span>
+                    <span class="text-sm font-bold text-slate-900">
+                      ${isTransfer ? `${escapeHtml(l.fromAddress)} → ${escapeHtml(l.toAddress)}` : escapeHtml(l.toAddress)}
+                    </span>
+                    <span class="text-xs font-semibold text-slate-500">(${l.chips.length.toLocaleString('ru-RU')} шт.)</span>
+                  </div>
+                  <span class="text-xs text-slate-400">${formatDateTime(l.date)}</span>
+                </div>
+                <div class="text-xs text-slate-600 mb-2 flex flex-wrap items-center gap-1.5">
+                  ${getOrgTypeBadge(l.orgType)} <span class="font-medium">${escapeHtml(l.uk)}</span> · 👤 ${escapeHtml(l.recipient)} (${escapeHtml(l.phone)})
+                  ${l.comment ? ` · 💬 ${escapeHtml(l.comment)}` : ''}
+                </div>
+                <div class="flex flex-wrap gap-1 items-center">
+                  ${shownChips.map(num => `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-xs">${escapeHtml(num)}</span>`).join('')}
+                  ${restCount > 0 ? `<button data-log-id="${l.id}" class="btn-log-expand px-2 py-0.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer">+ ещё ${restCount.toLocaleString('ru-RU')}</button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      const prevBtn = document.getElementById('btnHistPrev');
+      const nextBtn = document.getElementById('btnHistNext');
+      if (prevBtn) prevBtn.addEventListener('click', () => { if (historyPage > 1) { historyPage--; render(); } });
+      if (nextBtn) nextBtn.addEventListener('click', () => { if (historyPage < totalPages) { historyPage++; render(); } });
+
+      container.querySelectorAll('.btn-log-expand').forEach(btn => {
+        btn.addEventListener('click', () => {
+          expandedLogs.add(btn.dataset.logId);
+          render();
+        });
+      });
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function openIssueModal() {
+      document.getElementById('formIssue').reset();
+      document.getElementById('issueDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('issueParsedCount').textContent = 'Распознано: 0';
+      document.getElementById('issueDupWarning').classList.add('hidden');
+      openModal('modalIssue');
+    }
+
+    function updateIssuePreview() {
+      const raw = document.getElementById('issueChips').value;
+      const count = countChipNumbersFast(raw);
+      document.getElementById('issueParsedCount').textContent = `Распознано: ${count.toLocaleString('ru-RU')}`;
+      const warn = document.getElementById('issueDupWarning');
+      if (count > 0 && count <= 5000) {
+        const nums = parseChipNumbers(raw);
+        const dups = nums.filter(n => chipByNumber.has(n));
+        if (dups.length > 0) {
+          warn.textContent = `Уже в базе: ${dups.slice(0, 5).map(d => `${d} (${chipByNumber.get(d).address})`).join(', ')}${dups.length > 5 ? '…' : ''} — они будут пропущены при выдаче (для переноса используй «Перепривязать»).`;
+          warn.classList.remove('hidden');
+          return;
+        }
+      }
+      warn.classList.add('hidden');
+    }
+
+    function getTransferSourceChips() {
+      const srcAddr = document.getElementById('transferSourceSelect').value;
+      return state.chips.filter(c => c.address === srcAddr);
+    }
+
+    function filterChipsByQuickQuery(chips, query) {
+      const q = query.trim();
+      if (!q) return chips;
+      const tokens = q.split(/[\s,;]+/).map(t => t.trim()).filter(Boolean);
+      const exactOrRangeSet = new Set();
+      const substrings = [];
+
+      for (const token of tokens) {
+        const rangeMatch = token.match(/^(\d+)-(\d+)$/);
+        if (rangeMatch && chips.length <= 200000) {
+          const startStr = rangeMatch[1];
+          const start = parseInt(startStr, 10);
+          const end = parseInt(rangeMatch[2], 10);
+          if (!isNaN(start) && !isNaN(end) && end >= start && end - start <= 200000) {
+            const padLen = startStr.length;
+            for (let n = start; n <= end; n++) {
+              exactOrRangeSet.add(String(n).padStart(padLen, '0'));
+            }
+            continue;
+          }
+        }
+        substrings.push(token.toLowerCase());
+      }
+
+      return chips.filter(c => {
+        if (exactOrRangeSet.has(c.chipNumber)) return true;
+        const low = c.chipNumber.toLowerCase();
+        return substrings.some(s => low.includes(s));
+      });
+    }
+
+    function openTransferModal(sourceAddress, preselectedIds) {
+      const addrSet = new Set(state.chips.map(c => c.address));
+      const addresses = [...addrSet].sort();
+      if (addresses.length === 0) {
+        showToast('Сначала добавь хотя бы один чип');
+        return;
+      }
+      const select = document.getElementById('transferSourceSelect');
+      select.innerHTML = addresses.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+      select.value = sourceAddress && addrSet.has(sourceAddress) ? sourceAddress : addresses[0];
+
+      document.getElementById('transferDestAddress').value = '';
+      document.getElementById('transferComment').value = '';
+      document.getElementById('transferQuickFilter').value = '';
+      transferFilterText = '';
+      transferDisplayLimit = TRANSFER_GRID_LIMIT;
+
+      populateTransferSourceChips(preselectedIds);
+      openModal('modalTransfer');
+    }
+
+    function populateTransferSourceChips(preselectedIds) {
+      const chips = getTransferSourceChips();
+      if (chips.length > 0) {
+        const last = chips[chips.length - 1];
+        document.getElementById('transferOrgType').value = last.orgType || 'УК';
+        document.getElementById('transferUk').value = last.uk;
+        document.getElementById('transferOrgAddress').value = last.orgAddress || '';
+        document.getElementById('transferRecipient').value = last.recipient;
+        document.getElementById('transferPhone').value = last.phone;
+      }
+
+      transferSelectedSet = new Set();
+      if (preselectedIds && preselectedIds.length > 0) {
+        for (const id of preselectedIds) transferSelectedSet.add(id);
+      } else {
+        for (const c of chips) transferSelectedSet.add(c.id);
+      }
+
+      document.getElementById('transferSourceTotal').textContent = chips.length.toLocaleString('ru-RU');
+      renderTransferChipsGrid();
+    }
+
+    function renderTransferChipsGrid() {
+      const allSourceChips = getTransferSourceChips();
+      const filtered = filterChipsByQuickQuery(allSourceChips, transferFilterText);
+      const grid = document.getElementById('transferChipsGrid');
+      const visible = filtered.slice(0, transferDisplayLimit);
+      const rest = filtered.length - visible.length;
+
+      grid.innerHTML = visible.map(c => {
+        const checked = transferSelectedSet.has(c.id);
+        return `
+          <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-mono cursor-pointer hover:border-amber-400">
+            <input type="checkbox" class="transfer-chip-chk rounded" value="${c.id}" ${checked ? 'checked' : ''} />
+            <span>${escapeHtml(c.chipNumber)}</span>
+          </label>
+        `;
+      }).join('') + (rest > 0 ? `
+        <button type="button" id="btnTransferShowMore" class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer">
+          + ещё ${rest.toLocaleString('ru-RU')}
+        </button>
+      ` : '');
+
+      grid.querySelectorAll('.transfer-chip-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          if (chk.checked) transferSelectedSet.add(chk.value);
+          else transferSelectedSet.delete(chk.value);
+          updateTransferCount();
+        });
+      });
+
+      const moreBtn = document.getElementById('btnTransferShowMore');
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          transferDisplayLimit += 200;
+          renderTransferChipsGrid();
+        });
+      }
+
+      updateTransferCount();
+    }
+
+    function updateTransferCount() {
+      document.getElementById('transferSelectedCount').textContent = transferSelectedSet.size.toLocaleString('ru-RU');
+    }
+
+    function openChipDetail(chipId) {
+      const chip = chipById.get(chipId);
+      if (!chip) return;
+      currentDetailChipId = chipId;
+      document.getElementById('detailChipNumber').textContent = chip.chipNumber;
+      document.getElementById('detailBody').innerHTML = `
+        <div class="bg-slate-50 rounded-xl p-3 space-y-1 border border-slate-200/70">
+          <div><span class="text-slate-500">Текущий адрес:</span> <span class="font-semibold text-slate-900">${escapeHtml(chip.address)}</span></div>
+          <div><span class="text-slate-500">Организация:</span> ${getOrgTypeBadge(chip.orgType)} <span class="font-medium">${escapeHtml(chip.uk)}</span></div>
+          ${chip.orgAddress ? `<div><span class="text-slate-500">Адрес организации:</span> ${escapeHtml(chip.orgAddress)}</div>` : ''}
+          <div><span class="text-slate-500">Получатель:</span> ${escapeHtml(chip.recipient)} (${escapeHtml(chip.phone)})</div>
+          ${chip.note ? `<div><span class="text-slate-500">Комментарий:</span> ${escapeHtml(chip.note)}</div>` : ''}
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">История перемещений</div>
+          <div class="space-y-2">
+            ${chip.history.slice().reverse().map(h => `
+              <div class="border-l-2 ${h.action === 'Перепривязка' ? 'border-amber-400' : 'border-blue-500'} pl-3 py-0.5">
+                <div class="font-semibold text-slate-800 text-xs">
+                  ${escapeHtml(h.action)}: ${h.fromAddress ? `${escapeHtml(h.fromAddress)} → ${escapeHtml(h.toAddress)}` : escapeHtml(h.toAddress)}
+                </div>
+                <div class="text-xs text-slate-500">${formatDateTime(h.date)} · ${escapeHtml(h.recipient)}</div>
+                ${h.comment ? `<div class="text-xs text-slate-600 mt-0.5">${escapeHtml(h.comment)}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      openModal('modalChipDetail');
+    }
+
+    // Event Listeners
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => closeModal(btn.dataset.close));
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTab = btn.dataset.tab;
+        render();
+      });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      document.getElementById('btnClearSearch').classList.toggle('hidden', !searchQuery);
+      render();
+    });
+
+    document.getElementById('btnClearSearch').addEventListener('click', () => {
+      searchQuery = '';
+      chipsPage = 1;
+      historyPage = 1;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('btnClearSearch').classList.add('hidden');
+      render();
+    });
+
+    document.getElementById('orgTypeFilter').addEventListener('change', (e) => {
+      selectedOrgType = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    document.getElementById('ukFilter').addEventListener('change', (e) => {
+      selectedUk = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    document.getElementById('addressFilter').addEventListener('change', (e) => {
+      selectedAddress = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    document.getElementById('personFilter').addEventListener('change', (e) => {
+      selectedPerson = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    document.getElementById('phoneFilter').addEventListener('change', (e) => {
+      selectedPhone = e.target.value;
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+      searchQuery = '';
+      selectedUk = '';
+      selectedOrgType = '';
+      selectedAddress = '';
+      selectedPerson = '';
+      selectedPhone = '';
+      document.getElementById('searchInput').value = '';
+      document.getElementById('btnClearSearch').classList.add('hidden');
+      document.getElementById('orgTypeFilter').value = '';
+      document.getElementById('ukFilter').value = '';
+      document.getElementById('addressFilter').value = '';
+      document.getElementById('personFilter').value = '';
+      document.getElementById('phoneFilter').value = '';
+      chipsPage = 1;
+      historyPage = 1;
+      render();
+    });
+
+    const THEME_KEY = 'goodline_uk_theme_v1';
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      const authBtn = document.getElementById('btnThemeAuth');
+      const hdrBtn = document.getElementById('btnThemeHeader');
+      if (authBtn) authBtn.textContent = dark ? '☀️ Светлая' : '🌙 Тёмная';
+      if (hdrBtn) hdrBtn.textContent = dark ? '☀️' : '🌙';
+      try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) {}
+    }
+    try {
+      applyTheme(localStorage.getItem(THEME_KEY) === 'dark');
+    } catch (e) {}
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyTheme(!document.documentElement.classList.contains('dark'));
+      });
+    });
+
+    document.getElementById('btnOpenIssue').addEventListener('click', openIssueModal);
+    document.getElementById('issueChips').addEventListener('input', updateIssuePreview);
+
+    document.getElementById('formIssue').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const address = document.getElementById('issueAddress').value.trim();
+      const orgType = document.getElementById('issueOrgType').value;
+      const uk = document.getElementById('issueUk').value.trim();
+      const orgAddress = document.getElementById('issueOrgAddress').value.trim();
+      const recipient = document.getElementById('issueRecipient').value.trim();
+      const phone = document.getElementById('issuePhone').value.trim();
+      const issuedAt = document.getElementById('issueDate').value || new Date().toISOString().slice(0, 10);
+      const note = document.getElementById('issueNote').value.trim();
+      const nums = parseChipNumbers(document.getElementById('issueChips').value);
+
+      if (nums.length === 0) {
+        showToast('Укажи хотя бы один номер чипа');
+        return;
+      }
+
+      const newNums = nums.filter(n => !chipByNumber.has(n));
+      if (newNums.length === 0) {
+        showToast('Все указанные чипы уже есть в базе');
+        return;
+      }
+
+      const nowIso = new Date().toISOString();
+      for (const num of newNums) {
+        const chipObj = {
+          id: uid(),
+          chipNumber: num,
+          address,
+          orgType,
+          orgAddress,
+          uk,
+          recipient,
+          phone,
+          issuedAt,
+          note,
+          history: [{
+            date: nowIso,
+            action: 'Выдача',
+            fromAddress: null,
+            toAddress: address,
+            orgType,
+            orgAddress,
+            uk,
+            recipient,
+            phone,
+            comment: note
+          }]
+        };
+        state.chips.push(chipObj);
+        chipByNumber.set(num, chipObj);
+        chipById.set(chipObj.id, chipObj);
+      }
+
+      state.logs.unshift({
+        id: uid(),
+        date: nowIso,
+        action: 'Выдача',
+        fromAddress: null,
+        toAddress: address,
+        orgType,
+        orgAddress,
+        uk,
+        recipient,
+        phone,
+        chips: newNums,
+        comment: note
+      });
+
+      if (isSupabaseMode() && sbTokens) {
+        try {
+          const insertedChips = state.chips.slice(-newNums.length);
+          await sbUpsertChipsBatch(insertedChips);
+          await sbInsertLog(state.logs[0]);
+        } catch (err) {
+          showToast('Ошибка Supabase: ' + err.message);
+        }
+      } else {
+        saveState();
+      }
+      closeModal('modalIssue');
+      render();
+      showToast(`Добавлено чипов: ${newNums.length.toLocaleString('ru-RU')}`);
+    });
+
+    document.getElementById('btnOpenTransferGlobal').addEventListener('click', () => openTransferModal(null, null));
+    document.getElementById('transferSourceSelect').addEventListener('change', () => {
+      transferFilterText = '';
+      document.getElementById('transferQuickFilter').value = '';
+      transferDisplayLimit = TRANSFER_GRID_LIMIT;
+      populateTransferSourceChips(null);
+    });
+
+    document.getElementById('transferQuickFilter').addEventListener('input', (e) => {
+      transferFilterText = e.target.value;
+      transferDisplayLimit = TRANSFER_GRID_LIMIT;
+      renderTransferChipsGrid();
+    });
+
+    document.getElementById('btnTransferSelectAll').addEventListener('click', () => {
+      const filtered = filterChipsByQuickQuery(getTransferSourceChips(), transferFilterText);
+      for (const c of filtered) transferSelectedSet.add(c.id);
+      renderTransferChipsGrid();
+    });
+    document.getElementById('btnTransferClearAll').addEventListener('click', () => {
+      const filtered = filterChipsByQuickQuery(getTransferSourceChips(), transferFilterText);
+      for (const c of filtered) transferSelectedSet.delete(c.id);
+      renderTransferChipsGrid();
+    });
+
+    document.getElementById('formTransfer').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const srcAddr = document.getElementById('transferSourceSelect').value;
+      const destAddr = document.getElementById('transferDestAddress').value.trim();
+      const orgType = document.getElementById('transferOrgType').value;
+      const uk = document.getElementById('transferUk').value.trim();
+      const orgAddress = document.getElementById('transferOrgAddress').value.trim();
+      const recipient = document.getElementById('transferRecipient').value.trim();
+      const phone = document.getElementById('transferPhone').value.trim();
+      const comment = document.getElementById('transferComment').value.trim();
+      const checkedIds = [...transferSelectedSet];
+
+      if (checkedIds.length === 0) {
+        showToast('Выбери хотя бы один чип для переноса');
+        return;
+      }
+      if (!destAddr || destAddr === srcAddr) {
+        showToast('Укажи новый адрес, отличный от текущего');
+        return;
+      }
+
+      const nowIso = new Date().toISOString();
+      const movedNumbers = [];
+      for (const id of checkedIds) {
+        const chip = chipById.get(id);
+        if (!chip) continue;
+        chip.address = destAddr;
+        chip.orgType = orgType;
+        chip.orgAddress = orgAddress;
+        chip.uk = uk;
+        chip.recipient = recipient;
+        chip.phone = phone;
+        chip.issuedAt = nowIso.slice(0, 10);
+        if (comment) chip.note = comment;
+        chip.history.push({
+          date: nowIso,
+          action: 'Перепривязка',
+          fromAddress: srcAddr,
+          toAddress: destAddr,
+          orgType,
+          orgAddress,
+          uk,
+          recipient,
+          phone,
+          comment: comment || `Перепривязка с ${srcAddr}`
+        });
+        movedNumbers.push(chip.chipNumber);
+        selectedChipIds.delete(id);
+      }
+
+      state.logs.unshift({
+        id: uid(),
+        date: nowIso,
+        action: 'Перепривязка',
+        fromAddress: srcAddr,
+        toAddress: destAddr,
+        orgType,
+        orgAddress,
+        uk,
+        recipient,
+        phone,
+        chips: movedNumbers,
+        comment: comment || ''
+      });
+
+      if (isSupabaseMode() && sbTokens) {
+        try {
+          const updatedChips = checkedIds.map(id => chipById.get(id)).filter(Boolean);
+          await sbUpsertChipsBatch(updatedChips);
+          await sbInsertLog(state.logs[0]);
+        } catch (err) {
+          showToast('Ошибка Supabase: ' + err.message);
+        }
+      } else {
+        saveState();
+      }
+      closeModal('modalTransfer');
+      render();
+      showToast(`Перепривязано чипов: ${movedNumbers.length.toLocaleString('ru-RU')}`);
+    });
+
+    document.getElementById('btnSelectAllFiltered').addEventListener('click', () => {
+      const filtered = getFilteredChips();
+      for (const c of filtered) selectedChipIds.add(c.id);
+      render();
+      showToast(`Выбрано: ${filtered.length.toLocaleString('ru-RU')} шт.`);
+    });
+
+    document.getElementById('btnBulkTransfer').addEventListener('click', () => {
+      const ids = [...selectedChipIds];
+      const first = chipById.get(ids[0]);
+      if (first) openTransferModal(first.address, ids);
+    });
+    document.getElementById('btnBulkDeselect').addEventListener('click', () => {
+      selectedChipIds.clear();
+      render();
+    });
+
+    document.getElementById('btnDetailTransfer').addEventListener('click', () => {
+      const chip = chipById.get(currentDetailChipId);
+      closeModal('modalChipDetail');
+      if (chip) openTransferModal(chip.address, [chip.id]);
+    });
+
+    document.getElementById('btnDeleteChip').addEventListener('click', async () => {
+      if (!currentDetailChipId) return;
+      const delId = currentDetailChipId;
+      state.chips = state.chips.filter(c => c.id !== delId);
+      selectedChipIds.delete(delId);
+      rebuildIndexes();
+      if (isSupabaseMode() && sbTokens) {
+        try {
+          await sbFetch(`/rest/v1/chips?id=eq.${encodeURIComponent(delId)}`, { method: 'DELETE' });
+        } catch (err) {
+          showToast('Ошибка Supabase: ' + err.message);
+        }
+      } else {
+        saveState();
+      }
+      closeModal('modalChipDetail');
+      render();
+      showToast('Чип удалён из реестра');
+    });
+
+    // Data Menu
+    const dataMenu = document.getElementById('dataMenu');
+    document.getElementById('btnDataMenu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      dataMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => dataMenu.classList.add('hidden'));
+
+    document.getElementById('btnExportCsv').addEventListener('click', () => {
+      const header = ['Номер чипа', 'Адрес', 'Тип организации', 'Организация', 'Адрес организации', 'Кому выдано', 'Телефон', 'Дата', 'Комментарий'];
+      const rows = state.chips.map(c => [c.chipNumber, c.address, c.orgType || 'УК', c.uk, c.orgAddress || '', c.recipient, c.phone, c.issuedAt, c.note || '']
+        .map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
+      const csv = '\uFEFF' + [header.join(';'), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chips-uk-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV выгружен');
+    });
+
+    document.getElementById('btnExportJson').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chips-uk-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Резервная копия сохранена');
+    });
+
+    document.getElementById('inputImportJson').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (parsed && Array.isArray(parsed.chips)) {
+            state = { chips: parsed.chips, logs: Array.isArray(parsed.logs) ? parsed.logs : [] };
+            rebuildIndexes();
+            saveState();
+            render();
+            showToast('Данные загружены');
+          } else {
+            showToast('Неверный формат файла');
+          }
+        } catch (err) {
+          showToast('Ошибка чтения JSON');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('btnResetDemo').addEventListener('click', () => openModal('modalReset'));
+    document.getElementById('btnLoadDemoConfirm').addEventListener('click', () => {
+      state = createDemoState();
+      selectedChipIds.clear();
+      expandedAddresses.clear();
+      expandedLogs.clear();
+      rebuildIndexes();
+      saveState();
+      closeModal('modalReset');
+      render();
+      showToast('Загружены демо-данные');
+    });
+    document.getElementById('btnClearAllConfirm').addEventListener('click', () => {
+      state = { chips: [], logs: [] };
+      selectedChipIds.clear();
+      expandedAddresses.clear();
+      expandedLogs.clear();
+      rebuildIndexes();
+      saveState();
+      closeModal('modalReset');
+      render();
+      showToast('Реестр полностью очищен');
+    });
+
+    async function hashPassword(pwd) {
+      const str = String(pwd || '');
+      if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        try {
+          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+          return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (e) {}
+      }
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return 'fnv_' + (h >>> 0).toString(16);
+    }
+
+    let usersList = [];
+    let currentUser = null;
+
+    async function loadUsers() {
+      try {
+        const raw = localStorage.getItem(USERS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            usersList = parsed;
+            return;
+          }
+        }
+      } catch (e) {}
+      const defHash = await hashPassword('goodline2026');
+      usersList = [{ username: 'admin', displayName: 'Администратор', passHash: defHash, isDefault: true }];
+      saveUsers();
+    }
+
+    function saveUsers() {
+      try {
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList));
+      } catch (e) {}
+    }
+
+    function getSavedSession() {
+      try {
+        const s1 = sessionStorage.getItem(SESSION_KEY);
+        if (s1) return JSON.parse(s1);
+        const s2 = localStorage.getItem(SESSION_KEY);
+        if (s2) return JSON.parse(s2);
+      } catch (e) {}
+      return null;
+    }
+
+    function setSavedSession(user, remember) {
+      const payload = JSON.stringify({
+        username: user.username,
+        displayName: user.displayName || user.username,
+        sbTokens: user.sbTokens || null
+      });
+      try {
+        sessionStorage.setItem(SESSION_KEY, payload);
+        if (remember) localStorage.setItem(SESSION_KEY, payload);
+        else localStorage.removeItem(SESSION_KEY);
+      } catch (e) {}
+    }
+
+    function clearSavedSession() {
+      try {
+        sessionStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(SESSION_KEY);
+      } catch (e) {}
+    }
+
+    function applyAuthUi() {
+      const authEl = document.getElementById('authScreen');
+      const appEl = document.getElementById('appShell');
+      const hintEl = document.getElementById('defaultCredsHint');
+      const sbMode = isSupabaseMode();
+
+      const authBadge = document.getElementById('authModeBadge');
+      const headerBadge = document.getElementById('headerDbBadge');
+      const loginLabel = document.getElementById('loginUsernameLabel');
+      const loginInput = document.getElementById('loginUsername');
+      const syncBtn = document.getElementById('btnSyncSupabase');
+      const manageUsersBtn = document.getElementById('btnManageUsers');
+
+      if (sbMode) {
+        authBadge.textContent = 'Supabase подключён';
+        authBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
+        headerBadge.textContent = '☁️ Supabase';
+        headerBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700';
+        loginLabel.textContent = 'Email (Supabase Auth)';
+        loginInput.placeholder = 'manager@goodline.ru';
+        if (hintEl) hintEl.classList.add('hidden');
+        if (syncBtn) syncBtn.classList.remove('hidden');
+        if (manageUsersBtn) manageUsersBtn.classList.add('hidden');
+      } else {
+        authBadge.textContent = 'Локальный режим';
+        authBadge.className = 'text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600';
+        headerBadge.textContent = 'Локальная база';
+        headerBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600';
+        loginLabel.textContent = 'Логин';
+        loginInput.placeholder = 'admin';
+        const hasDefaultAdmin = usersList.some(u => u.username === 'admin' && u.isDefault);
+        if (hintEl) hintEl.classList.toggle('hidden', !hasDefaultAdmin);
+        if (syncBtn) syncBtn.classList.add('hidden');
+        if (manageUsersBtn) manageUsersBtn.classList.remove('hidden');
+      }
+
+      if (currentUser) {
+        authEl.classList.add('hidden');
+        appEl.classList.remove('hidden');
+        document.getElementById('currentUserBadge').textContent = currentUser.displayName || currentUser.username;
+      } else {
+        authEl.classList.remove('hidden');
+        appEl.classList.add('hidden');
+      }
+    }
+
+    function renderUsersModal() {
+      const listEl = document.getElementById('usersList');
+      listEl.innerHTML = usersList.map(u => `
+        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-sm">
+          <div>
+            <span class="font-semibold text-slate-900">${escapeHtml(u.username)}</span>
+            ${u.displayName ? `<span class="text-xs text-slate-500 ml-1">(${escapeHtml(u.displayName)})</span>` : ''}
+          </div>
+          ${usersList.length > 1 ? `<button data-del-user="${escapeHtml(u.username)}" class="btn-del-user text-xs text-rose-600 hover:underline cursor-pointer">Удалить</button>` : '<span class="text-xs text-slate-400">Основной</span>'}
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('.btn-del-user').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const uname = btn.dataset.delUser;
+          if (usersList.length <= 1) return;
+          usersList = usersList.filter(u => u.username !== uname);
+          saveUsers();
+          renderUsersModal();
+          showToast(`Пользователь ${uname} удалён`);
+        });
+      });
+    }
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uname = document.getElementById('loginUsername').value.trim();
+      const pwd = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('loginRemember').checked;
+      const errEl = document.getElementById('loginError');
+
+      if (isSupabaseMode()) {
+        try {
+          const res = await fetch(sbConfig.url + '/auth/v1/token?grant_type=password', {
+            method: 'POST',
+            headers: { 'apikey': sbConfig.key, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: uname, password: pwd })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            errEl.textContent = data.error_description || data.msg || 'Ошибка входа в Supabase';
+            errEl.classList.remove('hidden');
+            return;
+          }
+          errEl.classList.add('hidden');
+          sbTokens = { access_token: data.access_token, refresh_token: data.refresh_token };
+          currentUser = { username: data.user?.email || uname, displayName: data.user?.email || uname, sbTokens };
+          setSavedSession(currentUser, remember);
+          document.getElementById('loginPassword').value = '';
+          await sbLoadAllData();
+          applyAuthUi();
+          render();
+          showToast('Вход через Supabase выполнен');
+        } catch (err) {
+          errEl.textContent = 'Не удалось подключиться к Supabase: ' + err.message;
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const hash = await hashPassword(pwd);
+      const found = usersList.find(u => u.username.toLowerCase() === uname.toLowerCase() && u.passHash === hash);
+      if (!found) {
+        errEl.textContent = 'Неверный логин или пароль';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      errEl.classList.add('hidden');
+      currentUser = { username: found.username, displayName: found.displayName || found.username };
+      setSavedSession(currentUser, remember);
+      document.getElementById('loginPassword').value = '';
+      applyAuthUi();
+      render();
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      currentUser = null;
+      sbTokens = null;
+      clearSavedSession();
+      applyAuthUi();
+    });
+
+    function openSupabaseModal() {
+      document.getElementById('sbUrl').value = sbConfig?.url || '';
+      document.getElementById('sbKey').value = sbConfig?.key || '';
+      document.getElementById('btnDisconnectSupabase').classList.toggle('hidden', !isSupabaseMode());
+      openModal('modalSupabase');
+    }
+
+    document.getElementById('btnOpenSupabase').addEventListener('click', openSupabaseModal);
+    document.getElementById('btnOpenSupabaseFromAuth').addEventListener('click', openSupabaseModal);
+
+    document.getElementById('btnSyncSupabase').addEventListener('click', async () => {
+      if (!isSupabaseMode() || !sbTokens) return;
+      try {
+        await sbLoadAllData();
+        render();
+        showToast('Данные обновлены из Supabase');
+      } catch (err) {
+        showToast('Ошибка синхронизации: ' + err.message);
+      }
+    });
+
+    document.getElementById('formSupabase').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = document.getElementById('sbUrl').value.trim().replace(/\/+$/, '');
+      const key = document.getElementById('sbKey').value.trim();
+      if (!url || !key) return;
+      saveSbConfig({ url, key });
+      currentUser = null;
+      sbTokens = null;
+      clearSavedSession();
+      closeModal('modalSupabase');
+      applyAuthUi();
+      showToast('Supabase подключён — войди под email/паролем из Supabase Auth');
+    });
+
+    document.getElementById('btnDisconnectSupabase').addEventListener('click', async () => {
+      saveSbConfig(null);
+      currentUser = null;
+      sbTokens = null;
+      clearSavedSession();
+      await loadState();
+      closeModal('modalSupabase');
+      applyAuthUi();
+      render();
+      showToast('Переключено на локальную базу');
+    });
+
+    document.getElementById('btnManageUsers').addEventListener('click', () => {
+      renderUsersModal();
+      document.getElementById('formAddUser').reset();
+      openModal('modalUsers');
+    });
+
+    document.getElementById('formAddUser').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uname = document.getElementById('newUserLogin').value.trim();
+      const dname = document.getElementById('newUserName').value.trim();
+      const pwd = document.getElementById('newUserPass').value;
+      if (!uname || pwd.length < 4) return;
+
+      const passHash = await hashPassword(pwd);
+      const existing = usersList.find(u => u.username.toLowerCase() === uname.toLowerCase());
+      if (existing) {
+        existing.passHash = passHash;
+        if (dname) existing.displayName = dname;
+        existing.isDefault = false;
+        showToast(`Пароль для ${existing.username} обновлён`);
+      } else {
+        usersList.push({ username: uname, displayName: dname || uname, passHash, isDefault: false });
+        showToast(`Пользователь ${uname} добавлен`);
+      }
+      saveUsers();
+      document.getElementById('formAddUser').reset();
+      renderUsersModal();
+      applyAuthUi();
+    });
+
+    loadSbConfig();
+    Promise.all([loadUsers(), loadState()]).then(async () => {
+      const sess = getSavedSession();
+      if (isSupabaseMode()) {
+        if (sess && sess.sbTokens && sess.sbTokens.access_token) {
+          currentUser = sess;
+          sbTokens = sess.sbTokens;
+          try {
+            await sbLoadAllData();
+          } catch (e) {
+            currentUser = null;
+            sbTokens = null;
+            clearSavedSession();
+          }
+        }
+      } else if (sess && usersList.some(u => u.username === sess.username)) {
+        currentUser = sess;
+      }
+      applyAuthUi();
+      render();
+    });
+  </script>
+</body>
+</html>
