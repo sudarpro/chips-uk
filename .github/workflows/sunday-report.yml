@@ -1,0 +1,63 @@
+name: Sunday Trips Report
+
+on:
+  schedule:
+    - cron: '0 12 * * 0'
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Sunday Report
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          SB_SECRET_KEY: ${{ secrets.SB_SECRET_KEY }}
+          SB_URL: https://zwojmogydxtkfqlxsfhz.supabase.co
+        run: |
+          node -e '
+          async function main() {
+            const key = (process.env.SB_SECRET_KEY || "").trim();
+            const headers = key.startsWith("eyJ")
+              ? { apikey: key, Authorization: "Bearer " + key }
+              : { apikey: key };
+            const res = await fetch(`${process.env.SB_URL}/rest/v1/reminders?select=*&order=remind_date.asc,remind_time.asc`, { headers });
+            if (!res.ok) throw new Error(await res.text());
+            const all = await res.json();
+
+            const nowMs = Date.now() + 7 * 3600 * 1000;
+            const weekAgo = new Date(nowMs - 7 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+            const today = new Date(nowMs).toISOString().slice(0, 10);
+            const weekRows = all.filter(r => r.remind_date >= weekAgo && r.remind_date <= today);
+
+            const lines = weekRows.slice(0, 30).map(r =>
+              `• <b>${r.remind_date} ${(r.remind_time || "").slice(0, 5)}</b> — ${r.assignee || "?"}\n  🏠 ${r.address_or_uk || r.contact_name} (${r.task_type})${r.acked_by ? " ✅" : ""}`
+            ).join("\n") || "За эту неделю выездов не было";
+
+            await fetch(`https://api.telegram.org/bot${(process.env.TG_BOT_TOKEN || "").trim()}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: (process.env.TG_CHAT_ID || "").trim(),
+                text: `📊 <b>Отчёт за неделю (${weekAgo} — ${today})</b>\nВсего задач: <b>${weekRows.length}</b>\n\n${lines}`,
+                parse_mode: "HTML"
+              })
+            });
+
+            const header = ["Дата", "Время", "Тип", "Сотрудник", "Адрес / УК", "Контакт", "Телефон", "Повод", "Статус", "ОКнул", "Поставил"];
+            const csvRows = weekRows.map(r => [
+              r.remind_date, (r.remind_time || "").slice(0, 5), r.task_type, r.assignee || "",
+              r.address_or_uk || "", r.contact_name, r.phone, r.reason,
+              r.status === "done" ? "Выполнено" : "Активно", r.acked_by || "", r.created_by || ""
+            ].map(v => `"${String(v).replace(/"/g, "\"\"")}"`).join(";"));
+            const csv = "\uFEFF" + [header.join(";"), ...csvRows].join("\n");
+
+            const fd = new FormData();
+            fd.append("chat_id", (process.env.TG_CHAT_ID || "").trim());
+            fd.append("caption", `📋 Таблица выездов за неделю (${weekRows.length} шт.)`);
+            fd.append("document", new Blob([csv], { type: "text/csv" }), `otchet-${today}.csv`);
+            await fetch(`https://api.telegram.org/bot${(process.env.TG_BOT_TOKEN || "").trim()}/sendDocument`, { method: "POST", body: fd });
+          }
+          main().catch(e => { console.error(e); process.exit(1); });
+          '
