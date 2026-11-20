@@ -1,0 +1,90 @@
+name: Check Reminders
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Due Reminders
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_OWNER: ${{ secrets.TG_CHAT_ID }}
+          TG_CHAT_SANYA: ${{ secrets.TG_CHAT_SANYA }}
+          TG_CHAT_NIKITA: ${{ secrets.TG_CHAT_NIKITA }}
+          TG_CHAT_LEXA: ${{ secrets.TG_CHAT_LEXA }}
+          SB_SECRET_KEY: ${{ secrets.SB_SECRET_KEY }}
+          SB_URL: https://zwojmogydxtkfqlxsfhz.supabase.co
+        run: |
+          node -e '
+          async function main() {
+            const key = (process.env.SB_SECRET_KEY || "").trim();
+            const headers = key.startsWith("eyJ")
+              ? { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" }
+              : { apikey: key, "Content-Type": "application/json" };
+            const res = await fetch(`${process.env.SB_URL}/rest/v1/reminders?status=eq.pending&sent=eq.false`, { headers });
+            if (!res.ok) throw new Error(await res.text());
+            const rows = await res.json();
+
+            const nowMs = Date.now() + 7 * 3600 * 1000;
+            const nowLocal = new Date(nowMs).toISOString().slice(0, 16);
+            const nowPlus2h = new Date(nowMs + 2 * 3600 * 1000).toISOString().slice(0, 16);
+
+            const map = {
+              "Админ (Я)": process.env.TG_CHAT_OWNER,
+              "Саня": process.env.TG_CHAT_SANYA,
+              "Никита (Барракуда)": process.env.TG_CHAT_NIKITA,
+              "Лёха": process.env.TG_CHAT_LEXA
+            };
+
+            for (const r of rows) {
+              const due = `${r.remind_date}T${(r.remind_time || "10:00").slice(0, 5)}`;
+              const isAgentTask = r.task_type === "Направить агента";
+              const threshold = isAgentTask ? nowPlus2h : nowLocal;
+              if (due > threshold) continue;
+
+              const targets = new Set();
+              if (r.assignee === "Обоим админам") {
+                [process.env.TG_CHAT_OWNER, process.env.TG_CHAT_SANYA].forEach(id => { if (id) targets.add(id.trim()); });
+              } else if (r.assignee === "Обоим агентам") {
+                [process.env.TG_CHAT_NIKITA, process.env.TG_CHAT_LEXA].forEach(id => { if (id) targets.add(id.trim()); });
+              } else if (map[r.assignee]) {
+                targets.add(map[r.assignee].trim());
+              } else if (process.env.TG_CHAT_OWNER) {
+                targets.add(process.env.TG_CHAT_OWNER.trim());
+              }
+
+              const text = [
+                `${isAgentTask ? "🏃 <b>Выезд через 2 часа" : "📞 <b>Связаться сейчас"} (${r.assignee || ""})</b>`,
+                `🕒 Время: <b>${r.remind_date} в ${(r.remind_time || "").slice(0, 5)}</b>`,
+                `👤 <b>${r.contact_name}</b> · ${r.phone}`,
+                r.address_or_uk ? `🏠 ${r.address_or_uk}` : "",
+                `💬 ${r.reason}`,
+                r.created_by ? `✍️ Поставил: ${r.created_by}` : ""
+              ].filter(Boolean).join("\n");
+
+              const payload = { text, parse_mode: "HTML" };
+              if (isAgentTask) {
+                payload.reply_markup = { inline_keyboard: [[{ text: "✅ ОК, принял задачу", callback_data: "ack:" + r.id }]] };
+              }
+
+              for (const chatId of targets) {
+                await fetch(`https://api.telegram.org/bot${(process.env.TG_BOT_TOKEN || "").trim()}/sendMessage`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ...payload, chat_id: chatId })
+                });
+              }
+
+              await fetch(`${process.env.SB_URL}/rest/v1/reminders?id=eq.${encodeURIComponent(r.id)}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify({ sent: true })
+              });
+            }
+          }
+          main().catch(e => { console.error(e); process.exit(1); });
+          '
