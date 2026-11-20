@@ -1,0 +1,64 @@
+name: Weekly Supabase Backup to Telegram
+
+on:
+  schedule:
+    - cron: '0 11 * * 5' # Каждую пятницу в 18:00 (UTC+7)
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export Supabase and Send to Telegram
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          SB_SECRET_KEY: ${{ secrets.SB_SECRET_KEY }}
+          SB_URL: https://zwojmogydxtkfqlxsfhz.supabase.co
+        run: |
+          node -e '
+          async function main() {
+            const key = (process.env.SB_SECRET_KEY || "").trim();
+            const headers = key.startsWith("eyJ")
+              ? { apikey: key, Authorization: "Bearer " + key }
+              : { apikey: key };
+
+            const chips = [];
+            let offset = 0;
+            while (true) {
+              const res = await fetch(`${process.env.SB_URL}/rest/v1/chips?select=*&order=created_at.asc`, {
+                headers: { ...headers, Range: `${offset}-${offset + 999}` }
+              });
+              if (!res.ok) throw new Error(await res.text());
+              const rows = await res.json();
+              chips.push(...rows);
+              if (rows.length < 1000) break;
+              offset += 1000;
+            }
+
+            const logsRes = await fetch(`${process.env.SB_URL}/rest/v1/chip_logs?select=*&order=created_at.desc&limit=1000`, { headers });
+            const logs = logsRes.ok ? await logsRes.json() : [];
+
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const jsonText = JSON.stringify({ chips, logs }, null, 2);
+
+            const csvHeader = ["Номер чипа", "Адрес", "Тип", "Организация", "Адрес организации", "Кому выдано", "Телефон", "Дата", "Комментарий"];
+            const csvRows = chips.map(c => [c.chip_number, c.address, c.org_type || "УК", c.uk, c.org_address || "", c.recipient, c.phone, c.issued_at || "", c.note || ""]
+              .map(v => `"${String(v).replace(/"/g, "\"\"")}"`).join(";"));
+            const csvText = "\uFEFF" + [csvHeader.join(";"), ...csvRows].join("\n");
+
+            async function sendDoc(filename, content, mime, caption) {
+              const fd = new FormData();
+              fd.append("chat_id", (process.env.TG_CHAT_ID || "").trim());
+              if (caption) fd.append("caption", caption);
+              fd.append("document", new Blob([content], { type: mime }), filename);
+              const r = await fetch(`https://api.telegram.org/bot${(process.env.TG_BOT_TOKEN || "").trim()}/sendDocument`, { method: "POST", body: fd });
+              if (!r.ok) throw new Error(await r.text());
+            }
+
+            await sendDoc(`chips-backup-${dateStr}.json`, jsonText, "application/json", `📦 Полный бэкап базы (${chips.length} чипов)`);
+            await sendDoc(`chips-excel-${dateStr}.csv`, csvText, "text/csv", `📊 Таблица для Excel (${dateStr})`);
+            console.log("Backup sent!");
+          }
+          main().catch(e => { console.error(e); process.exit(1); });
+          '
