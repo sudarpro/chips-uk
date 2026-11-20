@@ -1,0 +1,64 @@
+name: Morning Telegram Digest
+
+on:
+  schedule:
+    - cron: '0 2 * * 1-5' # 09:00 по UTC+7 (Пн-Пт)
+  workflow_dispatch:
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Digest from Supabase
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          SB_SECRET_KEY: ${{ secrets.SB_SECRET_KEY }}
+          SB_URL: https://zwojmogydxtkfqlxsfhz.supabase.co
+        run: |
+          node -e '
+          async function main() {
+            const headers = process.env.SB_SECRET_KEY.startsWith("eyJ")
+              ? { apikey: process.env.SB_SECRET_KEY, Authorization: "Bearer " + process.env.SB_SECRET_KEY }
+              : { apikey: process.env.SB_SECRET_KEY };
+            const [chipsRes, logsRes] = await Promise.all([
+              fetch(process.env.SB_URL + "/rest/v1/chips?select=address,uk", { headers }),
+              fetch(process.env.SB_URL + "/rest/v1/chip_logs?select=action,from_address,to_address,uk,chips,created_at&order=created_at.desc&limit=50", { headers })
+            ]);
+            const chips = await chipsRes.json();
+            const logs = await logsRes.json();
+
+            const addrs = new Set(chips.map(c => c.address)).size;
+            const uks = new Set(chips.map(c => c.uk)).size;
+            const since = Date.now() - 24 * 60 * 60 * 1000;
+            const recent = logs.filter(l => new Date(l.created_at).getTime() >= since);
+
+            const issued24 = recent.filter(l => l.action === "Выдача").reduce((s, l) => s + (l.chips?.length || 0), 0);
+            const moved24 = recent.filter(l => l.action === "Перепривязка").reduce((s, l) => s + (l.chips?.length || 0), 0);
+
+            const lastLines = logs.slice(0, 3).map(l => {
+              const cnt = l.chips?.length || 0;
+              const route = l.from_address ? `${l.from_address} → ${l.to_address}` : l.to_address;
+              return `• <b>${l.action}</b>: ${route} (${cnt} шт., ${l.uk})`;
+            }).join("\n") || "Пока операций нет";
+
+            const text = [
+              `☀️ <b>Утренняя сводка по чипам УК</b>`,
+              ``,
+              `🔑 Всего в учёте: <b>${chips.length}</b> шт. (${addrs} адр., ${uks} орг.)`,
+              `📅 За последние 24ч: выдано <b>${issued24}</b>, перепривязано <b>${moved24}</b>`,
+              ``,
+              `<b>Последние операции:</b>`,
+              lastLines
+            ].join("\n");
+
+            const tgRes = await fetch(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: process.env.TG_CHAT_ID, text, parse_mode: "HTML" })
+            });
+            if (!tgRes.ok) throw new Error("Telegram error: " + await tgRes.text());
+            console.log("Digest sent!");
+          }
+          main().catch(e => { console.error(e); process.exit(1); });
+          '
