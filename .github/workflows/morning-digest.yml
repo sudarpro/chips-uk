@@ -18,13 +18,17 @@ jobs:
         run: |
           node -e '
           async function main() {
-            const headers = process.env.SB_SECRET_KEY.startsWith("eyJ")
-              ? { apikey: process.env.SB_SECRET_KEY, Authorization: "Bearer " + process.env.SB_SECRET_KEY }
-              : { apikey: process.env.SB_SECRET_KEY };
+            const key = (process.env.SB_SECRET_KEY || "").trim();
+            if (!key) throw new Error("Секрет SB_SECRET_KEY пустой!");
+            const headers = key.startsWith("eyJ")
+              ? { apikey: key, Authorization: "Bearer " + key }
+              : { apikey: key };
             const [chipsRes, logsRes] = await Promise.all([
               fetch(process.env.SB_URL + "/rest/v1/chips?select=address,uk", { headers }),
               fetch(process.env.SB_URL + "/rest/v1/chip_logs?select=action,from_address,to_address,uk,chips,created_at&order=created_at.desc&limit=50", { headers })
             ]);
+            if (!chipsRes.ok) throw new Error("Supabase chips " + chipsRes.status + ": " + await chipsRes.text());
+            if (!logsRes.ok) throw new Error("Supabase logs " + logsRes.status + ": " + await logsRes.text());
             const chips = await chipsRes.json();
             const logs = await logsRes.json();
 
@@ -52,10 +56,10 @@ jobs:
               lastLines
             ].join("\n");
 
-            const tgRes = await fetch(`https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendMessage`, {
+            const tgRes = await fetch(`https://api.telegram.org/bot${(process.env.TG_BOT_TOKEN || "").trim()}/sendMessage`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chat_id: process.env.TG_CHAT_ID, text, parse_mode: "HTML" })
+              body: JSON.stringify({ chat_id: (process.env.TG_CHAT_ID || "").trim(), text, parse_mode: "HTML" })
             });
             if (!tgRes.ok) throw new Error("Telegram error: " + await tgRes.text());
             console.log("Digest sent!");
