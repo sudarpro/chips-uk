@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Напоминалка — УК и агенты</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; transition: background-color 0.2s, color 0.2s; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    html.dark body {
+      background-color: #080d1a;
+      background-image: radial-gradient(ellipse 80% 45% at 50% -10%, rgba(99, 102, 241, 0.18), transparent);
+      background-attachment: fixed;
+      color: #f1f5f9;
+    }
+    html.dark #authScreen {
+      background-color: #080d1a;
+      background-image: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(99, 102, 241, 0.22), transparent);
+    }
+    html.dark .bg-white { background-color: rgba(17, 24, 39, 0.88) !important; backdrop-filter: blur(12px); }
+    html.dark .bg-slate-50 { background-color: rgba(15, 23, 42, 0.72) !important; }
+    html.dark .bg-slate-100 { background-color: rgba(30, 41, 59, 0.85) !important; }
+    html.dark .hover\:bg-slate-100:hover { background-color: rgba(51, 65, 85, 0.65) !important; }
+    html.dark .hover\:bg-slate-200:hover { background-color: rgba(71, 85, 105, 0.75) !important; }
+    html.dark .text-slate-900 { color: #f8fafc !important; }
+    html.dark .text-slate-800 { color: #e2e8f0 !important; }
+    html.dark .text-slate-700 { color: #cbd5e1 !important; }
+    html.dark .text-slate-600 { color: #94a3b8 !important; }
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .border-slate-200, html.dark .border-slate-200\/80, html.dark .border-slate-100 { border-color: rgba(148, 163, 184, 0.14) !important; }
+    html.dark input, html.dark select, html.dark textarea { background-color: rgba(10, 15, 28, 0.9) !important; color: #f1f5f9 !important; border-color: rgba(148, 163, 184, 0.2) !important; }
+    html.dark input::placeholder, html.dark textarea::placeholder { color: #64748b !important; }
+    html.dark .bg-blue-50 { background-color: rgba(37, 99, 235, 0.18) !important; }
+    html.dark .text-blue-700 { color: #93c5fd !important; }
+    html.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.16) !important; }
+    html.dark .text-amber-700, html.dark .text-amber-800 { color: #fcd34d !important; }
+    html.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.16) !important; }
+    html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+    html.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.16) !important; }
+    html.dark .text-rose-700, html.dark .text-rose-600 { color: #fda4af !important; }
+    html.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.18) !important; }
+    html.dark .text-purple-700 { color: #d8b4fe !important; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden">
+  <!-- Auth Screen -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 max-w-sm w-full p-6 sm:p-7">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md">⏰</div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900">Напоминалка</h1>
+          <p class="text-xs text-slate-500">Связь с УК и выезды агентов</p>
+        </div>
+      </div>
+
+      <form id="formLogin" class="space-y-3.5">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-600">Логин или Email</label>
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Supabase</span>
+          </div>
+          <input id="loginUsername" type="text" required autocomplete="username" placeholder="ivanov или email@mail.ru" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Пароль</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500" />
+        </div>
+        <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+          <input id="loginRemember" type="checkbox" checked class="rounded cursor-pointer" />
+          <span>Не выходить на этом устройстве</span>
+        </label>
+        <p id="loginError" class="hidden text-xs font-medium text-rose-600 bg-rose-50 px-3 py-2 rounded-xl"></p>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-sm font-semibold shadow-sm transition cursor-pointer">
+          Войти
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <button id="btnLocalMode" type="button" class="text-xs font-medium text-slate-500 hover:underline cursor-pointer">Войти локально (демо)</button>
+        <button id="btnThemeAuth" type="button" class="theme-toggle-btn text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">☀️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Shell -->
+  <div id="appShell" class="hidden max-w-5xl mx-auto px-3.5 py-4 pb-20 sm:px-6 sm:py-6">
+    <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md">⏰</div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-slate-900">Напоминалка</h1>
+            <span id="dbModeBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Supabase</span>
+          </div>
+          <p class="text-xs text-slate-500">Задачи: связаться с УК, направить агента, не потерять контакты</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnNewReminder" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-sm font-semibold shadow-md transition cursor-pointer">
+          + Новое напоминание
+        </button>
+        <button id="btnExportCsv" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer" title="Выгрузить в Excel (CSV)">📊 CSV</button>
+        <button id="btnRefresh" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer" title="Обновить">↻</button>
+        <button id="btnThemeHeader" class="theme-toggle-btn px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-sm font-medium transition cursor-pointer">☀️</button>
+        <button id="btnLogout" class="px-3 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-rose-50 hover:text-rose-700 text-slate-700 text-xs font-semibold transition cursor-pointer">
+          <span id="userBadge"></span> · Выйти
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <section class="grid grid-cols-3 gap-3 mb-5">
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Просрочено</div>
+        <div id="statOverdue" class="text-2xl font-bold text-rose-500 mt-1">0</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">На сегодня</div>
+        <div id="statToday" class="text-2xl font-bold text-amber-500 mt-1">0</div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm">
+        <div class="text-xs font-medium text-slate-500">Всего активных</div>
+        <div id="statActive" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+      </div>
+    </section>
+
+    <!-- Filters & Tabs -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm mb-5 space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <button data-tab="pending" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-slate-900 shadow-sm cursor-pointer">Активные</button>
+          <button data-tab="done" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 cursor-pointer">Выполнено</button>
+          <button data-tab="all" class="tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 cursor-pointer">Все</button>
+        </div>
+        <div class="flex flex-1 sm:max-w-md gap-2">
+          <input id="searchInput" type="text" placeholder="Поиск: ФИО, телефон, повод, адрес..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+          <select id="typeFilter" class="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white">
+            <option value="">Все типы</option>
+            <option value="Связаться с УК">Связаться с УК</option>
+            <option value="Направить агента">Направить агента</option>
+            <option value="Другое">Другое</option>
+          </select>
+          <select id="assigneeFilter" class="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white">
+            <option value="">Все сотрудники</option>
+            <option value="Админ (Я)">Админ (Я)</option>
+            <option value="Саня">Саня</option>
+            <option value="Обоим админам">Обоим админам</option>
+            <option value="Никита (Барракуда)">Никита (Барракуда)</option>
+            <option value="Лёха">Лёха</option>
+            <option value="Обоим агентам">Обоим агентам</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- List -->
+    <main id="remindersList" class="space-y-3"></main>
+  </div>
+
+  <!-- Modal: Add / Edit Reminder -->
+  <div id="modalReminder" class="hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="modalTitle" class="text-lg font-bold text-slate-900">Новое напоминание</h2>
+        <button data-close="modalReminder" class="text-slate-400 hover:text-slate-700 text-xl leading-none cursor-pointer">✕</button>
+      </div>
+      <form id="formReminder" class="space-y-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Тип задачи *</label>
+            <select id="remType" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white">
+              <option value="Связаться с УК">📞 Связаться с УК</option>
+              <option value="Направить агента">🏃 Направить агента</option>
+              <option value="Другое">📌 Другое</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Кому напомнить *</label>
+            <select id="remAssignee" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Дата напоминания *</label>
+            <input id="remDate" type="date" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Время *</label>
+            <input id="remTime" type="time" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">ФИО человека *</label>
+            <input id="remName" required placeholder="Петров Алексей" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Номер телефона *</label>
+            <input id="remPhone" required placeholder="+7 (903) 901-22-11" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Адрес / УК (опционально)</label>
+          <input id="remAddress" placeholder="ул. Ленина, 112 / УК Центральная" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">По какому поводу *</label>
+          <textarea id="remReason" rows="3" required placeholder="Например: Уточнить доступ в подъезд и направить агента на замену трубки" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" data-close="modalReminder" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium cursor-pointer">Отмена</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold cursor-pointer">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg"></div>
+
+  <script>
+    const SB_URL = 'https://zwojmogydxtkfqlxsfhz.supabase.co';
+    const SB_KEY = 'sb_publishable_MLsQmIfM73WGrurNvU37fQ_OQ-E3Uka';
+    const LOCAL_KEY = 'goodline_reminders_local_v1';
+    const SESSION_KEY = 'goodline_rem_session_v1';
+    const THEME_KEY = 'goodline_uk_theme_v1';
+
+    let reminders = [];
+    let currentUser = null;
+    let isLocalMode = false;
+    let activeTab = 'pending';
+    let searchQuery = '';
+    let selectedType = '';
+    let selectedAssignee = '';
+    let editingId = null;
+
+    function uid() {
+      return 'rem_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window.__t);
+      window.__t = setTimeout(() => el.classList.add('hidden'), 2600);
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      const b1 = document.getElementById('btnThemeAuth');
+      const b2 = document.getElementById('btnThemeHeader');
+      if (b1) b1.textContent = dark ? '☀️' : '🌙';
+      if (b2) b2.textContent = dark ? '☀️' : '🌙';
+      try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (e) {}
+    }
+
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+    });
+    try { applyTheme(localStorage.getItem(THEME_KEY) !== 'light'); } catch (e) { applyTheme(true); }
+
+    function createDemoReminders() {
+      const today = new Date().toISOString().slice(0, 10);
+      return [
+        {
+          id: 'r1', task_type: 'Связаться с УК', remind_date: today, remind_time: '15:00',
+          contact_name: 'Петров Алексей', phone: '+7 (903) 901-22-11',
+          address_or_uk: 'ул. Ленина, 112 / УК Центральная',
+          reason: 'Согласовать время доступа в щитовую для монтажа монитора',
+          assignee: 'Никита (Барракуда)', status: 'pending', sent: false, created_by: 'демо'
+        },
+        {
+          id: 'r2', task_type: 'Направить агента', remind_date: today, remind_time: '17:30',
+          contact_name: 'Смирнова Ольга', phone: '+7 (905) 912-44-55',
+          address_or_uk: 'пр. Шахтёров, 48, кв. 19',
+          reason: 'Направить агента на проверку трубки и передачу чипов',
+          assignee: 'Лёха', status: 'pending', sent: false, created_by: 'демо'
+        }
+      ];
+    }
+
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem(LOCAL_KEY);
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) { reminders = arr; return; }
+        }
+      } catch (e) {}
+      reminders = createDemoReminders();
+      saveLocal();
+    }
+
+    function saveLocal() {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(reminders)); } catch (e) {}
+    }
+
+    async function sbFetch(path, options = {}) {
+      const headers = Object.assign({
+        'apikey': SB_KEY,
+        'Content-Type': 'application/json'
+      }, options.headers || {});
+      if (currentUser && currentUser.token && !headers['Authorization']) {
+        headers['Authorization'] = 'Bearer ' + currentUser.token;
+      }
+      const res = await fetch(SB_URL + path, Object.assign({}, options, { headers }));
+      if (!res.ok) {
+        let msg = 'Ошибка ' + res.status;
+        try { const j = await res.json(); msg = j.message || j.error_description || msg; } catch (e) {}
+        throw new Error(msg);
+      }
+      if (res.status === 204) return null;
+      const t = await res.text();
+      return t ? JSON.parse(t) : null;
+    }
+
+    async function loadFromSupabase() {
+      const rows = await sbFetch('/rest/v1/reminders?select=*&order=remind_date.asc,remind_time.asc');
+      reminders = Array.isArray(rows) ? rows : [];
+    }
+
+    async function upsertReminder(item) {
+      if (isLocalMode) {
+        const idx = reminders.findIndex(r => r.id === item.id);
+        if (idx >= 0) reminders[idx] = item;
+        else reminders.push(item);
+        saveLocal();
+        return;
+      }
+      await sbFetch('/rest/v1/reminders', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(item)
+      });
+      await loadFromSupabase();
+    }
+
+    async function deleteReminder(id) {
+      reminders = reminders.filter(r => r.id !== id);
+      if (isLocalMode) {
+        saveLocal();
+        return;
+      }
+      await sbFetch(`/rest/v1/reminders?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+    }
+
+    function applyAuthUi() {
+      const auth = document.getElementById('authScreen');
+      const shell = document.getElementById('appShell');
+      if (currentUser || isLocalMode) {
+        auth.classList.add('hidden');
+        shell.classList.remove('hidden');
+        document.getElementById('userBadge').textContent = isLocalMode ? 'Локально' : currentUser.username;
+        const badge = document.getElementById('dbModeBadge');
+        badge.textContent = isLocalMode ? 'Локальный режим' : '☁️ Supabase';
+      } else {
+        auth.classList.remove('hidden');
+        shell.classList.add('hidden');
+      }
+    }
+
+    function getReminderTimestamp(r) {
+      return new Date(`${r.remind_date}T${r.remind_time || '09:00'}:00`).getTime();
+    }
+
+    function render() {
+      const now = Date.now();
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      let overdueCount = 0;
+      let todayCount = 0;
+      let activeCount = 0;
+      for (const r of reminders) {
+        if (r.status !== 'done') {
+          activeCount++;
+          if (getReminderTimestamp(r) < now) overdueCount++;
+          if (r.remind_date === todayStr) todayCount++;
+        }
+      }
+      document.getElementById('statOverdue').textContent = overdueCount;
+      document.getElementById('statToday').textContent = todayCount;
+      document.getElementById('statActive').textContent = activeCount;
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const on = btn.dataset.tab === activeTab;
+        btn.className = on
+          ? 'tab-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white text-slate-900 shadow-sm cursor-pointer'
+          : 'tab-btn px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 cursor-pointer';
+      });
+
+      const q = searchQuery.trim().toLowerCase();
+      const list = reminders
+        .filter(r => {
+          if (activeTab === 'pending' && r.status === 'done') return false;
+          if (activeTab === 'done' && r.status !== 'done') return false;
+          if (selectedType && r.task_type !== selectedType) return false;
+          if (selectedAssignee && (r.assignee || 'Никита (Барракуда)') !== selectedAssignee) return false;
+          if (!q) return true;
+          return (
+            (r.contact_name || '').toLowerCase().includes(q) ||
+            (r.phone || '').toLowerCase().includes(q) ||
+            (r.reason || '').toLowerCase().includes(q) ||
+            (r.address_or_uk || '').toLowerCase().includes(q)
+          );
+        })
+        .sort((a, b) => getReminderTimestamp(a) - getReminderTimestamp(b));
+
+      const container = document.getElementById('remindersList');
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-10 text-center text-sm text-slate-500">
+            Напоминаний пока нет. Нажми «+ Новое напоминание», чтобы ничего не потерять.
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(r => {
+        const ts = getReminderTimestamp(r);
+        const isDone = r.status === 'done';
+        const isOverdue = !isDone && ts < now;
+        const isToday = !isDone && r.remind_date === todayStr;
+        const typeColor = r.task_type === 'Направить агента'
+          ? 'bg-purple-50 text-purple-700'
+          : (r.task_type === 'Связаться с УК' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-700');
+        const telHref = 'tel:' + String(r.phone || '').replace(/[^\d+]/g, '');
+
+        return `
+          <div class="bg-white rounded-2xl border ${isOverdue ? 'border-rose-500/40' : 'border-slate-200/80'} p-4 shadow-sm ${isDone ? 'opacity-65' : ''}">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}">${escapeHtml(r.task_type)}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700">🎯 ${escapeHtml(r.assignee || 'Админ (Я)')}</span>
+                ${r.acked_by ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">✅ ОК: ${escapeHtml(r.acked_by)}</span>` : (r.task_type === 'Направить агента' && r.sent ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700">⏳ Ждём ОК</span>` : '')}
+                <span class="text-xs font-bold ${isOverdue ? 'text-rose-500' : (isToday ? 'text-amber-500' : 'text-slate-600')}">
+                  📅 ${escapeHtml(r.remind_date)} в ${escapeHtml((r.remind_time || '').slice(0, 5))}
+                  ${isOverdue ? ' (просрочено)' : (isToday ? ' (сегодня)' : '')}
+                </span>
+              </div>
+              <span class="text-xs text-slate-400">${r.created_by ? `Добавил: ${escapeHtml(r.created_by)}` : ''}</span>
+            </div>
+
+            <div class="text-sm font-bold text-slate-900 mb-1">
+              👤 ${escapeHtml(r.contact_name)} · <a href="${escapeHtml(telHref)}" class="text-blue-500 hover:underline font-mono">${escapeHtml(r.phone)}</a>
+            </div>
+            ${r.address_or_uk ? `<div class="text-xs text-slate-500 mb-1.5">🏠 ${escapeHtml(r.address_or_uk)}</div>` : ''}
+            <div class="text-sm text-slate-700 bg-slate-50 rounded-xl p-2.5 border border-slate-200/60 mb-3">${escapeHtml(r.reason)}</div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap gap-1.5">
+                <button data-act="toggle" data-id="${r.id}" class="act-btn px-3 py-1.5 rounded-xl ${isDone ? 'bg-slate-100 text-slate-700' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} text-xs font-semibold cursor-pointer">
+                  ${isDone ? '↩ Вернуть в работу' : '✓ Выполнено'}
+                </button>
+                ${!isDone ? `
+                  <button data-act="snooze2h" data-id="${r.id}" class="act-btn px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold cursor-pointer">+2 часа</button>
+                  <button data-act="tomorrow" data-id="${r.id}" class="act-btn px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold cursor-pointer">На завтра</button>
+                ` : ''}
+              </div>
+              <div class="flex gap-1.5">
+                <button data-act="edit" data-id="${r.id}" class="act-btn px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold cursor-pointer">✏️ Изменить</button>
+                <button data-act="delete" data-id="${r.id}" class="act-btn px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-semibold cursor-pointer">Удалить</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.act-btn').forEach(btn => {
+        btn.addEventListener('click', () => handleCardAction(btn.dataset.act, btn.dataset.id));
+      });
+    }
+
+    async function handleCardAction(act, id) {
+      const r = reminders.find(x => x.id === id);
+      if (!r) return;
+      try {
+        if (act === 'toggle') {
+          r.status = r.status === 'done' ? 'pending' : 'done';
+          await upsertReminder(r);
+          showToast(r.status === 'done' ? 'Отмечено выполненным' : 'Возвращено в работу');
+        } else if (act === 'snooze2h') {
+          const d = new Date(Math.max(Date.now(), getReminderTimestamp(r)) + 2 * 3600 * 1000);
+          r.remind_date = d.toISOString().slice(0, 10);
+          r.remind_time = d.toTimeString().slice(0, 5);
+          r.sent = false;
+          await upsertReminder(r);
+          showToast('Отложено на 2 часа');
+        } else if (act === 'tomorrow') {
+          const d = new Date(Date.now() + 24 * 3600 * 1000);
+          r.remind_date = d.toISOString().slice(0, 10);
+          r.sent = false;
+          await upsertReminder(r);
+          showToast('Перенесено на завтра');
+        } else if (act === 'edit') {
+          openReminderModal(r);
+          return;
+        } else if (act === 'delete') {
+          await deleteReminder(id);
+          showToast('Удалено');
+        }
+        render();
+      } catch (err) {
+        showToast('Ошибка: ' + err.message);
+      }
+    }
+
+    function syncAssigneeOptions(taskType, currentVal) {
+      const sel = document.getElementById('remAssignee');
+      const opts = taskType === 'Направить агента'
+        ? [
+            ['Никита (Барракуда)', '🏃 Никита (Барракуда)'],
+            ['Лёха', '🏃 Лёха'],
+            ['Обоим агентам', '👥 Обоим агентам (Никита и Лёха)']
+          ]
+        : [
+            ['Админ (Я)', '👤 Мне (Админ)'],
+            ['Саня', '👤 Сане (Админ)'],
+            ['Обоим админам', '👥 Обоим админам (Мне и Сане)']
+          ];
+      sel.innerHTML = opts.map(([v, label]) => `<option value="${v}">${label}</option>`).join('');
+      if (currentVal && opts.some(([v]) => v === currentVal)) sel.value = currentVal;
+    }
+
+    document.getElementById('remType').addEventListener('change', (e) => {
+      syncAssigneeOptions(e.target.value, null);
+    });
+
+    function openReminderModal(item) {
+      editingId = item ? item.id : null;
+      document.getElementById('modalTitle').textContent = item ? 'Изменить напоминание' : 'Новое напоминание';
+      const t = item ? item.task_type : 'Связаться с УК';
+      document.getElementById('remType').value = t;
+      syncAssigneeOptions(t, item ? item.assignee : null);
+      document.getElementById('remDate').value = item ? item.remind_date : new Date().toISOString().slice(0, 10);
+      document.getElementById('remTime').value = item ? (item.remind_time || '10:00').slice(0, 5) : '10:00';
+      document.getElementById('remName').value = item ? item.contact_name : '';
+      document.getElementById('remPhone').value = item ? item.phone : '';
+      document.getElementById('remAddress').value = item ? (item.address_or_uk || '') : '';
+      document.getElementById('remReason').value = item ? item.reason : '';
+      document.getElementById('modalReminder').classList.remove('hidden');
+    }
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => document.getElementById(btn.dataset.close).classList.add('hidden'));
+    });
+
+    document.getElementById('btnNewReminder').addEventListener('click', () => openReminderModal(null));
+
+    document.getElementById('formReminder').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const existing = editingId ? reminders.find(x => x.id === editingId) : null;
+      const item = {
+        id: editingId || uid(),
+        task_type: document.getElementById('remType').value,
+        assignee: document.getElementById('remAssignee').value,
+        remind_date: document.getElementById('remDate').value,
+        remind_time: document.getElementById('remTime').value,
+        contact_name: document.getElementById('remName').value.trim(),
+        phone: document.getElementById('remPhone').value.trim(),
+        address_or_uk: document.getElementById('remAddress').value.trim(),
+        reason: document.getElementById('remReason').value.trim(),
+        status: existing ? existing.status : 'pending',
+        sent: false,
+        created_by: currentUser ? currentUser.username : 'локально'
+      };
+      try {
+        await upsertReminder(item);
+        document.getElementById('modalReminder').classList.add('hidden');
+        render();
+        showToast(editingId ? 'Напоминание обновлено' : 'Напоминание сохранено');
+      } catch (err) {
+        showToast('Ошибка сохранения: ' + err.message);
+      }
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => { activeTab = btn.dataset.tab; render(); });
+    });
+    document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value; render(); });
+    document.getElementById('typeFilter').addEventListener('change', (e) => { selectedType = e.target.value; render(); });
+    document.getElementById('assigneeFilter').addEventListener('change', (e) => { selectedAssignee = e.target.value; render(); });
+
+    document.getElementById('btnExportCsv').addEventListener('click', () => {
+      const header = ['Дата', 'Время', 'Тип', 'Сотрудник', 'Адрес / УК', 'Контакт (ФИО)', 'Телефон', 'Повод', 'Статус', 'ОКнул', 'Поставил'];
+      const rows = reminders
+        .slice()
+        .sort((a, b) => getReminderTimestamp(a) - getReminderTimestamp(b))
+        .map(r => [
+          r.remind_date, (r.remind_time || '').slice(0, 5), r.task_type, r.assignee || '',
+          r.address_or_uk || '', r.contact_name, r.phone, r.reason,
+          r.status === 'done' ? 'Выполнено' : 'Активно', r.acked_by || '', r.created_by || ''
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'));
+      const csv = '\uFEFF' + [header.join(';'), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trips-uk-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Выгрузка CSV скачана');
+    });
+
+    document.getElementById('btnRefresh').addEventListener('click', async () => {
+      if (isLocalMode) { render(); return; }
+      try { await loadFromSupabase(); render(); showToast('Обновлено'); }
+      catch (err) { showToast('Ошибка: ' + err.message); }
+    });
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uname = document.getElementById('loginUsername').value.trim();
+      const pwd = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('loginRemember').checked;
+      const errEl = document.getElementById('loginError');
+      const email = uname.includes('@') ? uname : `${uname}@goodline.local`;
+      const cleanName = email.endsWith('@goodline.local') ? email.slice(0, -15) : email;
+
+      try {
+        const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pwd })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errEl.textContent = data.error_description || data.msg || 'Неверный логин или пароль';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        errEl.classList.add('hidden');
+        isLocalMode = false;
+        currentUser = { username: cleanName, token: data.access_token };
+        try {
+          if (remember) localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+          else sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        } catch (err) {}
+        await loadFromSupabase();
+        applyAuthUi();
+        render();
+      } catch (err) {
+        errEl.textContent = 'Ошибка подключения: ' + err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('btnLocalMode').addEventListener('click', () => {
+      isLocalMode = true;
+      currentUser = null;
+      loadLocal();
+      applyAuthUi();
+      render();
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      currentUser = null;
+      isLocalMode = false;
+      try { localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+      applyAuthUi();
+    });
+
+    (async () => {
+      try {
+        const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+        if (raw) {
+          currentUser = JSON.parse(raw);
+          await loadFromSupabase();
+        }
+      } catch (e) {
+        currentUser = null;
+      }
+      applyAuthUi();
+      render();
+    })();
+  </script>
+</body>
+</html>
